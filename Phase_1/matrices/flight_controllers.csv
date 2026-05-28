@@ -1,8 +1,20 @@
-FC,Class,MCU,IMUs,Baro,Mag,Firmware,Weight_g,Price_USD,CAN,Redundancy,Target_use
-Holybro Pixhawk 6X,Commercial,STM32H753,3,2,external,PX4/Ardupilot,35,280,yes,Triple IMU + isolated rails,Industrial / autonomous
-Holybro Pixhawk 6C,Commercial,STM32H743,2,1,external,PX4/Ardupilot,35,180,yes,Dual IMU,Mid-tier commercial
-CUAV V6X,Commercial,STM32H753,3,2,external,PX4/Ardupilot,,,yes,Triple IMU,Industrial
-Cube Orange+,Commercial,STM32H757,3,2,internal,Ardupilot/PX4,73,400,yes,Triple IMU + isolation,Industrial / heavy
-Matek H743-WING,Mid,STM32H743,1,1,external,INAV/Ardupilot,10,80,no,None,Fixed-wing / VTOL hobby
-SpeedyBee F405 V4,FPV,STM32F405,1,yes,no,Betaflight,9,40,no,None,FPV freestyle
-Holybro Kakute H7,FPV,STM32H743,1,yes,no,Betaflight/INAV,9,55,no,None,High-end FPV
+Tier,FC,FMU_std,MCU,Clock_MHz,RAM_KB,Flash_KB,IMUs,Baro,CAN,Ethernet,Weight_g,Price_USD,Notes
+Commercial,Holybro Pixhawk 6X,FMUv6X,STM32H753,480,1024,2048,3,2,yes,yes,35,280,Modular IMU/FMU/Base isolated domains
+Commercial,Holybro Pixhawk 6C,FMUv6C,STM32H743,480,1024,2048,2,1,yes,no,35,180,Cost-optimised single board
+Commercial,Holybro Pixhawk 6X-RT,FMUv6X-RT,NXP iMX RT1176,1000,2048,65536,3,2,yes,yes,35,350,iMX RT future-proof
+Commercial,CUAV Pixhawk V6X,FMUv6X,STM32H753,480,1024,2048,3,2,yes,yes,45,270,Ethernet built-in
+Commercial,CubePilot Cube Orange+,Cube,STM32H757,480,1024,2048,3,2,yes,no,73,400,Vibe-isolated IMUs ADS-B option
+Commercial,Holybro Pix32 v6,FMUv6X core,STM32H753,480,1024,2048,3,2,yes,no,30,200,Naked FMU module
+Commercial,mRo Control Zero H7,custom,STM32H743,480,1024,2048,3,1,yes,no,6,250,Tiny mil-spec
+Mid,Matek H743-WING V3,custom,STM32H743,480,1024,2048,2,1,no,no,12,80,INAV/ArduPilot Plane default
+Mid,Matek F405-WING,custom,STM32F405,168,192,1024,1,1,no,no,10,60,Cheap fixed-wing
+Mid,SpeedyBee F405 WING APP,custom,STM32F405,168,192,1024,1,1,no,no,10,55,INAV friendly
+Mid,Matek H743-MINI,custom,STM32H743,480,1024,2048,2,1,no,no,6,75,Compact ArduPilot Copter
+FPV,SpeedyBee F405 V4,none,STM32F405,168,192,1024,1,1,no,no,9,40,Default 5" budget
+FPV,SpeedyBee F405 Mini V2,none,STM32F405,168,192,1024,1,1,no,no,5,38,Same brain micro form
+FPV,Holybro Kakute H7,none,STM32H743,480,1024,2048,2,1,no,no,9,55,High-end 5"
+FPV,Holybro Kakute H7 Mini,none,STM32H743,480,1024,2048,2,1,no,no,6,50,High-end micro
+FPV,iFlight BLITZ Mini F7,none,STM32F722,216,256,512,1,1,no,no,6,45,F7 mid-tier
+FPV,HGLRC Zeus F722,none,STM32F722,216,256,512,1,1,no,no,9,40,Budget F7
+FPV,BetaFPV F4 1S 5-in-1 AIO,none,STM32F411,100,128,512,1,0,no,no,2,35,Tinywhoop AIO
+FPV,SpeedyBee F405 Mini AIO 25A,none,STM32F405,168,192,1024,1,1,no,no,7,70,Reference for Phase 2 System 2
