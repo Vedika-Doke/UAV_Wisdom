@@ -1,10 +1,8 @@
 # How Drones Fly
 
-The goal of this note: by the end you should be able to look at any multirotor and explain *why* it stays in the air, *how* it turns, and *why* the flight controller exists at all.
-
 ---
 
-## 1. The four forces (same as any aircraft)
+## 1. The four forces 
 
 | Force | Source | Acts |
 |-------|--------|------|
