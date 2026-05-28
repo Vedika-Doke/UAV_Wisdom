@@ -8,5 +8,3 @@ The "TheoryBits" of UAVs. Start here before touching any specific hardware.
 - [glossary.md](./glossary.md) — PWM, DShot, SBUS, CRSF, MAVLink, MSP, UART, I²C, CAN, DroneCAN…
 - [resources.md](./resources.md) — curated YouTube channels, blogs, docs
 
-## Status
-🔴 not started
