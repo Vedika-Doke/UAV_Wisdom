@@ -67,37 +67,8 @@ One large main rotor + tail rotor for yaw. Mostly industrial / agricultural (spr
 
 In India, all UAVs must be registered with **DGCA** on the **Digital Sky** platform. The unique identifier scheme is **UIN**. Operator certification is **RPC** (Remote Pilot Certificate).
 
-Outside India: FAA Part 107 (USA), EASA Open/Specific/Certified (EU), CAA (UK).
-
 ---
 
-## 5. Reference vehicles to study
-
-Pick one from each category and read its datasheet end-to-end — it accelerates your understanding of what's normal for that class.
-
-| Class | Recommended reference |
-|-------|----------------------|
-| FPV freestyle 5" | iFlight Nazgul Evoque F5D (or any 5" build on Oscar Liang) |
-| Camera multirotor | DJI Mavic 3 Pro (close-source but well-documented) |
-| Industrial multirotor | Freefly Alta X — open hardware, PX4-compatible |
-| Fixed-wing | Quantum Systems Trinity F90+ (mature commercial) |
-| VTOL | Wingtra WingtraRAY (tilt-rotor, NDAA-compliant) |
-| Long-range FPV | iFlight Chimera 7" / 9" |
-
----
-
-## 6. What this means for Phase 2
-
-The brief asks us to design FCs for **photography drones, surveillance drones, and load-carrying drones** — all **multirotor**. So Phase 2 design effort is concentrated on:
-
-- Multirotor-compatible FC firmware (PX4 / ArduPilot Copter)
-- Hover-stable EKF tuning
-- Payload mounting / vibration isolation
-- Power architecture sized for hex/octo current draws
-
-We do *not* need to support fixed-wing aerodynamic surfaces (servos for ailerons/elevators), simplifying the FC's I/O.
-
----
 
 ## Sources
 
