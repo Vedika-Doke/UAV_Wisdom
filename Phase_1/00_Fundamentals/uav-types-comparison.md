@@ -47,7 +47,7 @@ One large main rotor + tail rotor for yaw. Mostly industrial / agricultural (spr
 
 ---
 
-## 3. Sub-categories from the project brief (mapped to architectures)
+## 3. Sub-categories 
 
 | Brief category | Typical architecture | Why |
 |----------------|---------------------|-----|
