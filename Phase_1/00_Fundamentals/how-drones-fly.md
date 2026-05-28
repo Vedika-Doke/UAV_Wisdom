@@ -11,13 +11,13 @@
 | **Thrust** | Horizontal component of tilted rotor disk | Forward |
 | **Drag** | Air resistance | Opposite to motion |
 
-For a multirotor, **propellers do all the work** — both lifting and propelling. Unlike a plane, there are no wings generating lift from forward motion. That's why a quad falls out of the sky the instant the motors stop, and why it can hover (a fixed-wing cannot).
+For a multirotor, **propellers do all the work** — both lifting and propelling. Unlike a plane, there are no wings generating lift from forward motion. That's why a quadcopter falls out of the sky the instant the motors stop, and why it can hover (a fixed-wing cannot).
 
 ## 2. Why two CW + two CCW propellers
 
-A spinning prop pushes air down → equal-and-opposite reaction → the *aircraft body* gets twisted in the opposite direction (**reaction torque**). If all four motors spun the same way, the frame would spin underneath them.
+A spinning prop pushes air down -> equal-and-opposite reaction(courtesy of Mr Newton) -> the *aircraft body* gets twisted in the opposite direction (**reaction torque**). If all four motors spun the same way, the frame would spin underneath them.
 
-So adjacent motors are wired to spin in **opposite directions**, and you use **matched propellers** (a CW prop on a CW motor, a CCW prop on a CCW motor — the blade pitch differs). Net torque around the vertical axis ≈ 0. Two standard layouts:
+So adjacent motors are wired to spin in **opposite directions**, and we use **matched propellers**. Net torque around the vertical axis is approx 0. Two standard layouts:
 
 ```
    "Props-In"            "Props-Out"
@@ -36,15 +36,16 @@ Both work. "Props-out" is common on FPV freestyle because debris from the front 
 | Axis | Motion | How the FC achieves it |
 |------|--------|------------------------|
 | **Throttle** | Up / down | All 4 motors faster or slower equally |
-| **Roll** | Tilt left/right | Motors on one side slower → that side dips → thrust vector tilts → quad accelerates sideways |
-| **Pitch** | Tilt forward/back | Front (or back) motors slower → nose dips → forward acceleration |
+| **Roll** | Tilt left/right | Motors on one side slower -> that side dips -> thrust vector tilts -> quad accelerates sideways |
+| **Pitch** | Tilt forward/back | Front (or back) motors slower -> nose dips ->  forward acceleration |
 | **Yaw** | Rotate around vertical | Speed up the **CW pair**, slow the **CCW pair** (or vice-versa) → unbalanced reaction torque → frame rotates |
 
 Key insight: **translation (going forward) is just rotation (pitching nose down) plus more throttle**. The quad doesn't have a separate "forward" actuator — it tilts and lets its thrust vector pull it along.
+(A quadcopter moves forward by tilting itself, not by using a separate forward propeller. In hover, all rotor thrust points upward to balance gravity. When the drone pitches nose-down, the thrust vector tilts too, so part of the thrust points forward and accelerates the drone horizontally. Because tilting reduces the upward component of thrust, the flight controller increases throttle to maintain lift. So forward translation is essentially rotated lift: pitch forward plus extra thrust.)
 
 ## 4. Why a flight controller is mandatory
 
-A quadcopter is **dynamically unstable**. Drop the controller out of the loop and even a perfectly built quad will flip within a second — wind, prop-wash, motor mismatch, or just the inertia of a slight angle will compound until it's upside down.
+A quadcopter is **dynamically unstable**. Drop the controller out of the loop and even a perfectly built quad will flip within a second — wind, prop-wash, motor mismatch, or just the inertia of a slight angle will compound until it's upside down (like Vecna).
 
 The flight controller closes a **feedback loop** thousands of times per second:
 
@@ -69,22 +70,25 @@ flowchart LR
 ```
 
 Per loop iteration (typical 4–8 kHz on modern FCs):
-1. Read gyroscope → "how fast am I rotating right now?"
-2. Compare to setpoint → "how fast do I *want* to rotate?"
+1. Read gyroscope -> "how fast am I rotating right now?"
+2. Compare to setpoint -> "how fast do I *want* to rotate?"
 3. **error** = setpoint − measured
-4. Run PID on the error → produce a correction
+4. Run PID on the error -> produce a correction
 5. **Motor mixer** translates "I need more roll right" into "M1: +5%, M2: −5%, M3: +5%, M4: −5%"
 6. Send new throttle to each ESC
 
 ## 5. PID in one paragraph each
 
-A PID controller takes a single number — the error — and produces a single number — the correction. It's three terms summed together:
+A PID controller takes a single number -> the error — and produces a single number — the correction. It's three terms summed together:
 
-- **P (Proportional):** correction proportional to *current* error. Too low → sluggish, oscillation-damped. Too high → fast but oscillates around the setpoint (visible as wobble).
-- **I (Integral):** correction proportional to *accumulated* error over time. Cancels steady offsets (e.g., a heavier payload on one side). Too high → slow oscillations, "bouncing back" after maneuvers.
-- **D (Derivative):** correction proportional to the *rate of change* of error. Damps oscillation, acts like a shock absorber. Too high → amplifies noise (hot motors, "burnt" smell after flight is often D-term overcooking the motors).
+- **P (Proportional):** correction proportional to *current* error. Too low -> sluggish, oscillation damped. Too high -> fast but oscillates around the setpoint (visible as wobble). [overshoot]
+- **I (Integral):** correction proportional to *accumulated* error over time. Cancels steady offsets (e.g., a heavier payload on one side). Too high -> slow oscillations, "bouncing back" after maneuvers.
+- **D (Derivative):** correction proportional to the *rate of change* of error. Damps oscillation, acts like a shock absorber. Too high -> amplifies noise (hot motors, "burnt" smell after flight is often D-term overcooking the motors).
 
-Each axis (roll, pitch, yaw) has its own independent PID with its own gains. **Tuning** means finding gains that are crisp on input but don't oscillate — and a typical 5" quad needs different gains than a 7" long-range.
+(Refer Normal Nise book for revision)
+
+Each axis (roll, pitch, yaw) has its own independent PID with its own gains. **Tuning** means finding gains that are crisp on input but don't oscillate. 
+[Might wanna explore Ziegler-Nichols method and LQR controllers]
 
 ## 6. Sensors involved
 
@@ -92,7 +96,7 @@ Each axis (roll, pitch, yaw) has its own independent PID with its own gains. **T
 |--------|---------------|---------------------|
 | Gyroscope (3-axis) | Angular *rate* (°/s) | Inner PID loop — fast, low-drift short-term |
 | Accelerometer (3-axis) | Linear acceleration (incl. gravity) | Estimate of which way is *down* — corrects gyro drift over time |
-| Barometer | Air pressure → altitude | Altitude hold |
+| Barometer | Air pressure -> altitude | Altitude hold |
 | Magnetometer | Magnetic north | Absolute heading (yaw drift correction) |
 | GPS | Position + ground velocity | Position hold, waypoints, return-to-home |
 | Optical flow / TOF | Lateral motion vs ground | Indoor position hold (no GPS) |
