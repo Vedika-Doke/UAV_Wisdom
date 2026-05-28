@@ -1,6 +1,20 @@
-ESC,Type,Cont_Current_A,Cells,MCU,Firmware,Telemetry,Weight_g,Price_USD,Notes
-T-Motor F55A Pro II,4-in-1,55,3-6S,ARM,BLHeli_32,yes,14,75,Popular 5" choice
-Hobbywing XRotor Micro 60A,4-in-1,60,3-6S,ARM,BLHeli_32,yes,12,70,
-Holybro Tekko32 F4 65A,4-in-1,65,3-6S,ARM,BLHeli_32,yes,12,85,Onboard F4 for ESC telem
-Mamba F65,4-in-1,65,3-6S,ARM,BLHeli_32,yes,13,85,
-BLHeli_S 35A generic,Individual,35,2-4S,EFM8,BLHeli_S/Bluejay,partial,5,10,Cheap and hackable
+Category,ESC,Cont_A,Burst_A,Cells,MCU_class,Firmware_2026,BEC,Weight_g,Mounting,Price_USD,Notes
+4in1,T-Motor F55A Pro II,55,75,3-6S,32-bit F3,AM32,10V/2A,14,30.5,75,Default 5" premium
+4in1,Hobbywing XRotor Micro 60A,60,,3-6S,32-bit,BLHeli_32/AM32,none,12,30.5,70,DShot1200 large MOSFETs
+4in1,Holybro Tekko32 F4 65A,65,80,3-6S,32-bit F4,BLHeli_32/AM32,9V/2A,12,30.5,85,Onboard F4 for ESC telem
+4in1,Mamba F65,65,,3-6S,32-bit,BLHeli_32/AM32,yes,13,30.5,85,DiatoneRC
+4in1,SpeedyBee BLS 50A,50,60,3-6S,8-bit EFM8,Bluejay,5V/2A,9,30.5,45,Cheap with Bluejay
+4in1,iFlight BLITZ E55,55,65,3-6S,32-bit,BLHeli_32/AM32,yes,13,30.5,70,
+4in1,HGLRC Forward 60A,60,,3-6S,32-bit,BLHeli_32/AM32,yes,12,30.5,65,
+4in1,Holybro Tekko32 F4 Mini 35A,35,45,2-6S,32-bit,BLHeli_32/AM32,yes,7,20,55,Micro reference for System 2
+AIO,SpeedyBee F405 Mini AIO 25A,FC F405 + ESC 25A,,2-4S,8-bit EFM8,Bluejay,onboard,7,20,70,Reference for Phase 2 System 2
+AIO,SpeedyBee F405 Mini AIO 40A,FC F405 + ESC 40A,,3-6S,8-bit EFM8,Bluejay,onboard,9,20,95,6S version
+AIO,HGLRC Zeus F722 AIO 60A,FC F722 + ESC 60A,,3-6S,32-bit,BLHeli_32,onboard,11,25.5,110,Higher-current AIO
+AIO,iFlight BLITZ F7 AIO,FC F722 + ESC 55A,,3-6S,32-bit,BLHeli_32/AM32,onboard,10,25.5,100,
+AIO,BetaFPV F4 1S 5-in-1,FC F411 + ESC 5A,,1S,8-bit,BLHeli_S,onboard,2,14,35,Tinywhoop
+AIO,Mamba MK4 F405 AIO 25A,FC F405 + ESC 25A,,2-4S,8-bit EFM8,BLHeli_S/Bluejay,onboard,7,20,65,
+Industrial,Holybro Tekko32 F4 50A,50,,3-6S,32-bit,DShot + UART,full telem,12,30.5,80,Bridges to Pixhawk
+Industrial,mRo OUYA 30A,30,,3-6S,DroneCAN,smart ESC,full telem,,,,Industrial smart
+Industrial,CUAV NEO ESC,80,,4-12S,DroneCAN,smart ESC,full,,,,Heavy-lift HV
+Industrial,Zubax Myxa B,25,60,5-60V,DroneCAN FOC,smart ESC,full,,,,Top-end industrial FOC
+Industrial,T-Motor Flame 60A HV,60,,up to 12S,PWM,basic telem,basic,,,,Heavy-lift
