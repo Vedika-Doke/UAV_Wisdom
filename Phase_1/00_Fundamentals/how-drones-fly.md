@@ -103,7 +103,7 @@ Each axis (roll, pitch, yaw) has its own independent PID with its own gains. **T
 
 The gyro + accelerometer pair is fused by a **complementary filter** or an **EKF (Extended Kalman Filter)** to give an *attitude estimate* — the FC's belief about its current orientation. Gyro is trusted short-term (fast, accurate, but drifts); accelerometer is trusted long-term (noisy but gravity-anchored). PX4 and ArduPilot use full EKFs (EKF2, EKF3); Betaflight uses a simpler complementary filter, which is enough for a self-leveling acro quad but not for autonomous position hold.
 
-## 7. Two control modes you'll hear about
+## 7. Two common control modes 
 
 - **Acro / Rate mode:** stick = desired *rotation rate*. Release the stick and the quad keeps its current angle. Used in FPV freestyle/racing.
 - **Angle / Self-level mode:** stick = desired *tilt angle*. Release the stick and the quad returns to level. Used by camera drones and beginners.
