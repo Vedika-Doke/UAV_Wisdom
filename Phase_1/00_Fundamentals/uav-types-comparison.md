@@ -1,6 +1,6 @@
 # UAV Types — Comparison
 
-A UAV (Unmanned Aerial Vehicle) is any powered aircraft without a human onboard. "Drone" is the colloquial term. The interesting axis is **how they generate lift**, because everything else — endurance, payload, hovering ability, regulatory class, cost — falls out of that one choice.
+A UAV (Unmanned Aerial Vehicle) is any powered aircraft without a human onboard. 
 
 ---
 
