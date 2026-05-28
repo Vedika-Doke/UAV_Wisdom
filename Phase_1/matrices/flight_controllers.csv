@@ -1,0 +1,8 @@
+FC,Class,MCU,IMUs,Baro,Mag,Firmware,Weight_g,Price_USD,CAN,Redundancy,Target_use
+Holybro Pixhawk 6X,Commercial,STM32H753,3,2,external,PX4/Ardupilot,35,280,yes,Triple IMU + isolated rails,Industrial / autonomous
+Holybro Pixhawk 6C,Commercial,STM32H743,2,1,external,PX4/Ardupilot,35,180,yes,Dual IMU,Mid-tier commercial
+CUAV V6X,Commercial,STM32H753,3,2,external,PX4/Ardupilot,,,yes,Triple IMU,Industrial
+Cube Orange+,Commercial,STM32H757,3,2,internal,Ardupilot/PX4,73,400,yes,Triple IMU + isolation,Industrial / heavy
+Matek H743-WING,Mid,STM32H743,1,1,external,INAV/Ardupilot,10,80,no,None,Fixed-wing / VTOL hobby
+SpeedyBee F405 V4,FPV,STM32F405,1,yes,no,Betaflight,9,40,no,None,FPV freestyle
+Holybro Kakute H7,FPV,STM32H743,1,yes,no,Betaflight/INAV,9,55,no,None,High-end FPV

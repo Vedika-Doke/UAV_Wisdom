@@ -1,0 +1,6 @@
+ESC,Type,Cont_Current_A,Cells,MCU,Firmware,Telemetry,Weight_g,Price_USD,Notes
+T-Motor F55A Pro II,4-in-1,55,3-6S,ARM,BLHeli_32,yes,14,75,Popular 5" choice
+Hobbywing XRotor Micro 60A,4-in-1,60,3-6S,ARM,BLHeli_32,yes,12,70,
+Holybro Tekko32 F4 65A,4-in-1,65,3-6S,ARM,BLHeli_32,yes,12,85,Onboard F4 for ESC telem
+Mamba F65,4-in-1,65,3-6S,ARM,BLHeli_32,yes,13,85,
+BLHeli_S 35A generic,Individual,35,2-4S,EFM8,BLHeli_S/Bluejay,partial,5,10,Cheap and hackable
