@@ -1,5 +1,0 @@
-Firmware,License,RTOS,Vehicles,Autonomy,EKF,GCS,ROS2,Best_for
-Betaflight,GPLv3,None (bare metal),Multirotor (acro/freestyle/racing),GPS Rescue only,Complementary,Betaflight Configurator,no,FPV racing/freestyle
-INAV,GPLv3,None (bare metal),Multirotor + fixed-wing + VTOL,Basic waypoints + RTH,Complementary,INAV Configurator,no,Hobby autonomy/fixed-wing/long-range
-ArduPilot,GPLv3,ChibiOS,Copter/Plane/Rover/Sub/Heli/Blimp/AntennaTracker,Mature,EKF3 (24-state),Mission Planner + QGC,via MAVROS,Industrial multirotor/mapping/ag-spray
-PX4,BSD-3/Apache-2.0,NuttX,Multirotor/Plane/VTOL/Rover,Mature,EKF2,QGroundControl,Native uXRCE-DDS,Commercial products/ROS 2 research/defense
