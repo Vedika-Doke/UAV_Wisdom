@@ -8,7 +8,6 @@ __pycache__/
 *.pyc
 
 # Phase 1 sections kept local-only until ready to publish
-Phase_1/02_Flight_Controllers/
 Phase_1/03_ESCs/
 Phase_1/04_Firmwares/
 Phase_1/05_AIO_vs_Stack/
