@@ -15,7 +15,7 @@ Pre-design research and market study. Goal: build a clear understanding of drone
 | 02 | [Flight Controllers](./02_Flight_Controllers) | Pixhawk ecosystem, FPV FCs, FC internals, comparison matrix | 🟡 |
 | 03 | [ESCs](./03_ESCs) | Architectures, 4-in-1 vs individual, firmwares, comparison matrix | 🟡 |
 | 04 | [Firmwares](./04_Firmwares) | Betaflight · INAV · Ardupilot · PX4 | 🟡 |
-| 05 | AIO vs Stack | When AIO FC+ESC beats a separate FC+ESC stack | 🔴 |
+| 05 | [AIO vs Stack](./05_AIO_vs_Stack) | When AIO FC+ESC beats a separate FC+ESC stack | 🟡 |
 | 06 | Autonomous Stacks | Companion computers, MAVLink/MAVSDK, ROS integration | 🔴 |
 | — | matrices/ | CSV copies of all comparison tables | 🔴 |
 | — | [assets/](./assets) | Diagrams, photos, screenshots | — |
