@@ -22,6 +22,9 @@ This repo is organised by **project phase**. Each phase has its own folder with 
 - Every note ends with a **Sources** section so claims can be traced and cited in the final report/PPT.
 - Diagrams use [Mermaid](https://mermaid.js.org/) where possible (GitHub renders them natively).
 
+## Presentations
+- Phase 1 survey deck: [`Phase_1/Phase1_UAV_Survey.key`](./Phase_1/Phase1_UAV_Survey.key) (Keynote)
+
 ## Status legend
 🟢 done · 🟡 in progress · 🔴 not started
 
