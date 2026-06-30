@@ -23,6 +23,19 @@ Refers to changing the drone's orientation in space — described by three angle
 
 ---
 
+## Reference Frames
+
+| Frame | Fixed to | Used for |
+|-------|----------|----------|
+| **Inertial (World)** | Ground — does not move with the drone | GPS, navigation, mapping |
+| **Body (Local)** | Drone centre of mass — moves with it | Force, torque, control calculations |
+
+Body frame convention (NED): X → forward, Y → right, Z → down.
+
+**GPS works in the inertial frame; IMU measures in the body frame.** The FC computes control commands in the body frame, then converts to inertial frame effects using the rotation matrix / quaternion. This is exactly what "rotation matrices convert between body and world frames" means in practice.
+
+---
+
 ## How It Is Used
 
 ### 1. IMU — Inertial Measurement Unit
