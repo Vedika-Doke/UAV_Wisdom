@@ -30,9 +30,26 @@ Refers to changing the drone's orientation in space — described by three angle
 | **Inertial (World)** | Ground — does not move with the drone | GPS, navigation, mapping |
 | **Body (Local)** | Drone centre of mass — moves with it | Force, torque, control calculations |
 
-Body frame convention (NED): X → forward, Y → right, Z → down.
+Two common inertial frame conventions used in UAVs:
 
-**GPS works in the inertial frame; IMU measures in the body frame.** The FC computes control commands in the body frame, then converts to inertial frame effects using the rotation matrix / quaternion. This is exactly what "rotation matrices convert between body and world frames" means in practice.
+### ENU — East-North-Up
+- X → East, Y → North, Z → Up
+- Tangent-plane, centered at a reference point on Earth's surface; does not rotate with UAV
+- Used in: GPS navigation, geographic mapping, GIS, ROS (default)
+
+### NED — North-East-Down
+- X → North, Y → East, Z → Down (altitude *decreases* as Z increases — aviation convention)
+- Moves with the UAV but stays aligned to Earth's NED directions
+- Used in: UAV autopilots, flight control systems, ArduPilot/PX4 (default)
+- **Preferred in aerospace** because Z-down matches how altimeters and barometers work
+
+| | ENU | NED |
+|-|-----|-----|
+| Z-axis | Up | Down |
+| Default in | ROS, GIS | ArduPilot, PX4, aerospace |
+| Applications | Mapping, GPS data | Flight control, stabilisation, path planning |
+
+**GPS works in ENU/inertial frame; IMU measures in the body frame (NED convention).** The FC converts between them using the rotation matrix / quaternion every control cycle.
 
 ---
 
