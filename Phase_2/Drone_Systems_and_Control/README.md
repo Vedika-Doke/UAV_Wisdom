@@ -15,6 +15,7 @@
 | # | Topic | File | Status |
 |---|-------|------|:------:|
 | 01 | Swash-Plate Based Systems | [01_swash_plate.md](./01_swash_plate.md) | 🟢 done |
+| 02 | Rotation & Orientation Control (Roll/Pitch/Yaw, IMU, PID) | [02_rotation_orientation_control.md](./02_rotation_orientation_control.md) | 🟢 done |
 
 ---
 
@@ -23,7 +24,9 @@
 - **Swash plate** = mechanical interface between static frame and spinning rotor; enables collective + cyclic pitch control
 - **Collective pitch** → altitude control (all blades change angle together)
 - **Cyclic pitch** → roll/pitch/yaw (blade angle varies sinusoidally per revolution)
-- Helicopter AIO PCB needs: ≥4 servo channels, single high-current ESC stage, RPM sensing, vibration isolation strategy
+- **IMU** (gyro + accel) on the AIO board detects roll/pitch/yaw → feeds PID loops
+- **PID output** in a helicopter → servo positions (not motor speed); roll/pitch PID → cyclic servos; yaw PID → tail rotor; altitude PID → collective
+- Helicopter AIO PCB needs: ≥4 servo channels, single high-current ESC stage, RPM sensing, vibration isolation strategy, dual IMU, MCU with hardware FPU
 
 ---
 
