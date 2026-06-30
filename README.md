@@ -11,7 +11,7 @@ This repo is organised by **project phase**. Each phase has its own folder with 
 | Phase | Focus | Status |
 |------:|-------|:------:|
 | [Phase 1](./Phase_1) | UAV fundamentals, hardware/firmware survey, comparison matrices (research / market study) | 🟡 in progress |
-| [Phase 2](./Phase_2) | NPTEL coursework (Drone Systems and Control) + hardware design | 🟡 in progress |
+| [Phase 2](./Phase_2) | AIO FC+ESC PCB design for single-rotor helicopter drones + NPTEL coursework | 🟡 in progress |
 
 ---
 
