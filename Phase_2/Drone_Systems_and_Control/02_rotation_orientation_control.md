@@ -61,9 +61,33 @@ Two common inertial frame conventions used in UAVs:
 - Runs at 1–8 kHz to keep up with fast dynamics
 
 ### 2. Rotation Matrices / Quaternions
-- **Rotation matrix** — 3×3 matrix that converts a vector from the **body frame** (relative to the drone) to the **world frame** (relative to the ground), or vice versa
-- **Quaternion** — a 4-number representation preferred in firmware because it avoids **gimbal lock** (a singularity that occurs with Euler angles when pitch = ±90°)
-- The FC firmware maintains the current attitude as a quaternion, updated every IMU sample
+
+**Inertial → Body Frame Transformation**
+
+Converts a vector from the fixed Earth frame (NED/ENU) into the drone's moving body frame. Requires knowing the UAV's current orientation (φ, θ, ψ).
+
+Euler angles used:
+
+| Symbol | Angle | Rotation axis |
+|--------|-------|---------------|
+| φ (phi) | Roll | Body X |
+| θ (theta) | Pitch | Body Y |
+| ψ (psi) | Yaw | Body Z |
+
+Rotation matrix (Inertial → Body), using shorthand cX = cos(X), sX = sin(X):
+
+```
+        ⎡  cθcψ          cθsψ        −sθ  ⎤
+R_BI =  ⎢  sφsθcψ−cφsψ  sφsθsψ+cφcψ  sφcθ ⎥
+        ⎣  cφsθcψ+sφsψ  cφsθsψ−sφcψ  cφcθ ⎦
+```
+
+Transformation: **v_B = R_BI · v_I**
+- v_I = vector in inertial frame (e.g. GPS velocity)
+- v_B = same vector expressed in body frame (what the drone "feels")
+
+- **Quaternion** — 4-number alternative to the matrix; avoids **gimbal lock** (singularity at θ = ±90°), preferred in FC firmware
+- The FC updates the quaternion every IMU sample and derives R_BI from it when needed
 
 ### 3. PID Controller — Real-time Orientation Correction
 
