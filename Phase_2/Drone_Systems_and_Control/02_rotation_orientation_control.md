@@ -67,6 +67,22 @@ The swash plate translates these servo commands into actual blade pitch changes 
 
 ---
 
+## Real-World Task Applications
+
+How rotation (orientation) and translation (position) work together across common drone tasks:
+
+| Task | Role of Rotation / Translation | Brief explanation |
+|------|-------------------------------|-------------------|
+| **Autonomous navigation** | Compute position & orientation to move | The FC must know *where it is* (translation, from GPS/barometer) and *which way it's pointing* (rotation, from IMU) simultaneously. Both are fused to plan and execute a move to a target waypoint. |
+| **Target tracking** | Align camera (rotate) and follow (translate) | First yaw/pitch to point the camera at the target (rotation), then command the helicopter to close the distance (translation). These run in parallel in a tracking loop. |
+| **Landing on a platform** | Adjust orientation to level, translate to center | Level the airframe (roll/pitch → 0°) while simultaneously drifting sideways over the pad centre. Precision landing uses both attitude and position control at the same time. |
+| **Aerial photography** | Rotate camera gimbal, stabilise with roll/pitch | The gimbal actively counter-rotates against the drone's roll/pitch/yaw to keep the camera horizon-level. The FC provides attitude data to the gimbal controller in real time. |
+| **Formation flying** | Maintain orientation & relative distance | Each drone in the formation must hold its own attitude (rotation) while also keeping a fixed offset from its neighbours (translation). Requires inter-drone communication + tight PID loops on both. |
+
+> For a helicopter specifically, **every single task above depends on the swash plate servo loop** responding correctly to PID commands — reinforcing why servo latency and IMU accuracy on the AIO PCB are non-negotiable.
+
+---
+
 ## AIO PCB Design Implications
 
 - **IMU placement is critical** — mount as close to the centre of mass as possible, isolated from motor/servo vibration. Use foam or rubber grommets between IMU and PCB if possible.
