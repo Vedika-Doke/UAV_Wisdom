@@ -231,6 +231,15 @@ Critical for: sensor fusion (IMU + GPS + camera), localisation, precision landin
 
 `Drone → GPS + IMU → Position estimate` — this is the simplest real-world instance of this diagram.
 
+### Types of Estimation Problems
+
+| Type | Estimates | Examples | Methods |
+|------|-----------|----------|---------|
+| **Parameter (Static)** | Fixed, unknown quantities | Sensor bias/gain, mass of object | MLE, Bayesian estimation |
+| **State (Dynamic)** | Quantities that evolve over time | Position, velocity, attitude of drone | Kalman Filter, EKF, Particle Filter |
+
+State estimation requires **recursive updating** — each new sensor measurement refines the estimate. This is what the Kalman Filter does on your AIO FC board every IMU cycle.
+
 ---
 
 ## Sources
