@@ -155,5 +155,41 @@ In drone context: the RADAR measures Δf of the echo, computes `v = Δf × c / (
 
 ---
 
+## Visual Sensors — Cameras
+
+### Stereo Camera
+
+Two RGB cameras at a fixed, known separation — mimics human binocular vision to compute depth.
+
+**How:** Captures two simultaneous images from slightly different perspectives → triangulates the pixel disparity between them → depth per pixel.
+
+| Applications | Limitations |
+|-------------|-------------|
+| 3D mapping | Sensitive to calibration errors |
+| Depth estimation | Lower accuracy at long distances |
+| Visual odometry & obstacle avoidance | Degrades in poor/changing lighting |
+
+Example chip: **ZED M** (StereoLabs) — common in research UAVs.
+
+---
+
+## Drone Applications → Sensor Mapping
+
+> Source: NPTEL Lec 09, Slide 37
+
+| Application | Primary Sensors | Purpose |
+|-------------|----------------|---------|
+| **Navigation & Waypoint Control** | GNSS, IMU | Position hold, route following, heading correction |
+| **Altitude Hold** | Barometer, Ultrasonic, LiDAR | Stable hover at specific height — indoor and outdoor |
+| **Obstacle Avoidance** | 3D LiDAR, Camera, Ultrasonic, LiDAR Altimeter | Avoid collisions during autonomous flight |
+| **Indoor Navigation** | 3D LiDAR, Camera, Optical Flow, IMU | SLAM, vision-based odometry in GPS-denied environments |
+| **Autonomous Landing** | Downward Camera, Ultrasonic, LiDAR Altimeter | Visual target detection, precision landing, terrain detection |
+| **Search & Rescue** | Thermal Camera, GNSS, RGB Camera | Human detection, geotagging images, mission planning |
+| **Surveillance & Mapping** | RGB Camera, LiDAR, GNSS, Thermal Camera | Aerial photography, orthomosaics, 3D mapping |
+| **Precision Agriculture** | Multispectral Camera, GNSS | Crop health monitoring, NDVI index, altitude-based spraying |
+| **Delivery Drones** | GNSS, IMU, Obstacle Sensors | Safe path planning, location tracking, drop-point accuracy |
+
+---
+
 ## Sources
-- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25)
+- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37)
