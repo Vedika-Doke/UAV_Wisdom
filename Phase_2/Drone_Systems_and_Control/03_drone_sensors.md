@@ -191,5 +191,47 @@ Example chip: **ZED M** (StereoLabs) — common in research UAVs.
 
 ---
 
+---
+
+## Why Estimation? (Lec 11)
+
+**Sensors ≠ State.** Raw sensor output is noisy, delayed, and incomplete:
+- IMU → biased, drifty
+- GPS → jittery, slow
+- Barometer → temperature-sensitive
+
+**Estimation bridges sensing and control:**
+```
+Sensors → [Estimation] → Control
+```
+> "You can't control what you can't reliably estimate."
+
+Estimation combines multiple sensor inputs to infer the **true state** — position, velocity, attitude, and even unobservable quantities like wind speed. Without it: raw data → unstable, oscillatory flight. With it: smooth, accurate control.
+
+Critical for: sensor fusion (IMU + GPS + camera), localisation, precision landing, GPS-denied navigation.
+
+### Estimation in Action — Block Diagram
+
+![Estimation block diagram](./assets/estimation_block_diagram.png)
+*Source: NPTEL Lec 11 — Drone Systems and Control, IISc*
+
+**Reading the diagram:**
+
+| Block | What it is |
+|-------|-----------|
+| **Inputs** | Control commands sent to the drone (e.g. servo positions, throttle) |
+| **Process Noise** | Unmodelled disturbances — wind, vibration, model error — that corrupt the actual system behaviour |
+| **Nonlinear System** | The drone itself — physics of rotor, swash plate, aerodynamics |
+| **Measurement** | Raw sensor output (GPS position, IMU acceleration, etc.) |
+| **Measurement Noise** | Sensor errors — quantisation, bias, drift |
+| **Estimation Algorithm** | Kalman filter / EKF / UKF — fuses inputs + measurements to produce best state estimate |
+| **Estimated states** | Clean position, velocity, attitude handed to the PID controller |
+
+**Key insight:** The estimation algorithm receives both the control inputs (what we *told* the drone to do) and the noisy measurements (what the sensors *say* happened), then reconciles them into a reliable state estimate.
+
+`Drone → GPS + IMU → Position estimate` — this is the simplest real-world instance of this diagram.
+
+---
+
 ## Sources
-- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37)
+- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37); Lec 11 (Slides 3, block diagram)
