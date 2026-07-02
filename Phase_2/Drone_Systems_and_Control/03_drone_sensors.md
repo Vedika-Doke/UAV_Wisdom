@@ -240,6 +240,20 @@ Critical for: sensor fusion (IMU + GPS + camera), localisation, precision landin
 
 State estimation requires **recursive updating** — each new sensor measurement refines the estimate. This is what the Kalman Filter does on your AIO FC board every IMU cycle.
 
+### Estimator Properties
+
+![Estimator properties overview](./assets/estimator_properties.jpg)
+*Source: NPTEL Lec 11 — Drone Systems and Control, IISc*
+
+| Property | Definition | Intuition |
+|----------|-----------|-----------|
+| **Unbiasedness** | E[θ̂] = θ | On average, hits the true value |
+| **Consistency** | θ̂ₙ → θ as n → ∞ | More data → better estimate |
+| **Efficiency** | Lowest variance among all unbiased estimators | Measured against Cramér-Rao Lower Bound (CRLB) |
+| **Robustness** | Resistant to outliers and model deviations | Median is more robust than mean |
+
+In practice for the AIO FC: the Kalman Filter is unbiased and efficient under Gaussian noise assumptions; when noise is non-Gaussian (motor vibration spikes), robust estimators or outlier rejection is needed.
+
 ---
 
 ## Sources
