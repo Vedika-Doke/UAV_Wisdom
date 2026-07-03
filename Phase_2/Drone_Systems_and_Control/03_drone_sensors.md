@@ -289,5 +289,43 @@ Measurement equation: z_k = H·x_k + v_k
 
 ---
 
+## Kalman Filter Loop
+
+**Core workflow: Predict → Update → Repeat** (every IMU cycle on the FC)
+
+### 1. Prediction Step (Time Update)
+
+![Kalman predict step](./assets/kalman_predict_step.png)
+*Source: NPTEL Lec 12 — Drone Systems and Control, IISc*
+
+```
+State prediction:      x̂_{k|k-1} = A·x̂_{k-1|k-1} + B·u_{k-1}
+Covariance prediction: P_{k|k-1} = A·P_{k-1|k-1}·Aᵀ + Q
+```
+
+- Projects previous state forward using system dynamics (A, B)
+- Grows uncertainty by adding process noise covariance Q
+
+### 2. Update Step (Measurement Correction)
+
+![Kalman update step](./assets/kalman_update_step.png)
+*Source: NPTEL Lec 12 — Drone Systems and Control, IISc*
+
+```
+Innovation:           y_k = z_k − H·x̂_{k|k-1}
+Innovation covariance: S_k = H·P_{k|k-1}·Hᵀ + R
+Kalman gain:          K_k = P_{k|k-1}·Hᵀ·S_k⁻¹
+Update estimate:      x̂_{k|k} = x̂_{k|k-1} + K_k·y_k
+Update covariance:    P_{k|k} = (I − K_k·H)·P_{k|k-1}
+```
+
+**Innovation y_k** = how wrong the prediction was → guides the correction.  
+**Kalman gain K_k** balances trust between model (P) and sensor (R) — high K → trust sensor more; low K → trust model more.
+
+- Corrects the predicted state using new sensor measurement
+- Reduces uncertainty by fusing model and sensor reliability
+
+---
+
 ## Sources
 - NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37); Lec 11 (Slides 3, block diagram, 12, 14); Lec 12 (Slide 7)
