@@ -325,7 +325,54 @@ Update covariance:    P_{k|k} = (I − K_k·H)·P_{k|k-1}
 - Corrects the predicted state using new sensor measurement
 - Reduces uncertainty by fusing model and sensor reliability
 
+### Kalman Gain — Intuition
+
+![Kalman gain intuition](./assets/kalman_gain_intuition.png)
+*Source: NPTEL Lec 12 — Drone Systems and Control, IISc*
+
+```
+K_k = P_{k|k-1} · Hᵀ · (H·P_{k|k-1}·Hᵀ + R)⁻¹
+        ↑
+   predicted uncertainty
+```
+
+| Condition | K_k | Effect |
+|-----------|-----|--------|
+| Model trusted more (low P) | Small | Small correction — mostly keep prediction |
+| Sensor trusted more (low R) | Large | Large correction — pull toward measurement |
+
+K_k adapts every cycle — it's not a fixed gain, it self-tunes based on current uncertainty.
+
+---
+
+## Extended Kalman Filter (EKF) — Lec 13
+
+Standard KF assumes **linear** system dynamics. Drone flight is nonlinear — EKF linearises around the current estimate at each step.
+
+![EKF flow diagram](./assets/ekf_flow_diagram.png)
+*Source: NPTEL Lec 13 — Extended Kalman Filters, IISc*
+
+**Key difference from KF:** Replace A→f(), H→h(), and use Jacobians F_k, H_k instead.
+
+```
+Prediction:
+  x̂_{k|k-1} = f(x̂_{k-1}, u_k)          ← nonlinear state function
+  P_{k|k-1} = F_k · P_{k-1} · F_kᵀ + Q_k ← F_k = Jacobian of f
+
+Kalman Gain:
+  K_k = P_{k|k-1} · H_kᵀ · (H_k·P_{k|k-1}·H_kᵀ + R_k)⁻¹
+
+Correction:
+  x̂_k = x̂_{k|k-1} + K_k · (y_k − h(x̂_{k|k-1}))  ← h() nonlinear measurement fn
+  P_k  = (I − K_k·H_k) · P_{k|k-1}
+```
+
+- Run once per new sensor measurement; rate set by IMU/GPS sampling rate
+- Or event-based: only update when motion is detected (saves compute)
+
+> **AIO FC context:** ArduPilot/PX4 use EKF2/EKF3 — both are EKF variants running on the STM32 MCU. The Jacobians are pre-computed analytically for the drone's specific state equations to keep real-time compute feasible.
+
 ---
 
 ## Sources
-- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37); Lec 11 (Slides 3, block diagram, 12, 14); Lec 12 (Slide 7)
+- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37); Lec 11 (Slides 3, block diagram, 12, 14); Lec 12 (Slides 7, predict/update loop, gain intuition); Lec 13 (EKF flow diagram)
