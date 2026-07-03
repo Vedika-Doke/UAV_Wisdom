@@ -256,5 +256,38 @@ In practice for the AIO FC: the Kalman Filter is unbiased and efficient under Ga
 
 ---
 
+## Kalman Filter — Discretized System (Lec 12)
+
+![Discretized system equations](./assets/kalman_discretized_system.png)
+*Source: NPTEL Lec 12 — Kalman Filtering Technique, IISc*
+
+**State-space model (discrete time):**
+
+```
+Process equation:    x_k = A·x_{k-1} + B·u_{k-1} + w_{k-1}
+Measurement equation: z_k = H·x_k + v_k
+```
+
+| Symbol | Meaning |
+|--------|---------|
+| x_k | State vector (e.g. position, velocity) at step k |
+| u_k | Control input (e.g. servo command, throttle) |
+| z_k | Measurement (raw sensor reading) |
+| A | State transition matrix (how state evolves) |
+| B | Control input matrix |
+| H | Measurement matrix (maps state to sensor output) |
+| w_k ~ N(0, Q) | Process noise — Gaussian, covariance Q |
+| v_k ~ N(0, R) | Measurement noise — Gaussian, covariance R |
+
+| | Process Noise (w) | Measurement Noise (v) |
+|--|-------------------|-----------------------|
+| **Definition** | Uncertainty in system dynamics | Uncertainty in sensor measurements |
+| **Sources** | Model mismatch, external forces, actuator jitter | Sensor limits, quantisation, electronic noise, interference |
+| **Assumption** | Gaussian | Gaussian |
+
+> **AIO FC context:** Q and R are tuning parameters. Q too high → filter trusts sensors over model (noisy); R too high → filter trusts model over sensors (sluggish). For a helicopter with vibration, R for the IMU needs careful tuning.
+
+---
+
 ## Sources
-- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37); Lec 11 (Slides 3, block diagram)
+- NPTEL: Drone Systems and Control, IISc Bangalore — Lec 08 (Slides 6, 8, 10, 12); Lec 09 (Slides 23, 25, 28, 37); Lec 11 (Slides 3, block diagram, 12, 14); Lec 12 (Slide 7)
