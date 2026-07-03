@@ -121,6 +121,35 @@ The swash plate translates these servo commands into actual blade pitch changes 
 
 ---
 
+## Flight Control Architecture
+
+![Flight control architecture](./assets/flight_control_architecture.png)
+*Source: NPTEL — Drone Systems and Control, IISc*
+
+Two nested loops:
+
+**Outer Loop** (blue) — slow, position-level:
+- User command → Position/Velocity Controller → desired attitude + desired thrust
+
+**Inner Loop** (red) — fast, attitude-level:
+- Attitude Controller → desired moments → Control Allocation → RPM/servo commands → Drone Dynamics
+- Sensors & Fusion reads drone states → feeds attitude/rates back to Attitude Controller, velocities/position back to Position Controller
+- Safety Command can override Control Allocation (failsafe)
+
+| Signal | Flow |
+|--------|------|
+| Desired attitude | Pos/Vel Controller → Attitude Controller |
+| Desired thrust | Pos/Vel Controller → Control Allocation |
+| Desired moments | Attitude Controller → Control Allocation |
+| Desired RPM commands | Control Allocation → Drone Dynamics |
+| Drone states | Drone Dynamics → Sensors & Fusion |
+| Attitude and rates | Sensors & Fusion → Attitude Controller |
+| Velocities and position | Sensors & Fusion → Position/Vel Controller |
+
+> **Helicopter AIO PCB:** Inner loop (attitude + control allocation) runs at ~400 Hz+ on the FC MCU. Control allocation maps moments to swash plate servo positions, not motor RPM. Outer loop runs slower (~50 Hz) since position changes slowly relative to attitude.
+
+---
+
 ## Real-World Task Applications
 
 How rotation (orientation) and translation (position) work together across common drone tasks:
