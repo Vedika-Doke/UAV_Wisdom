@@ -92,7 +92,25 @@ Servo 2 (120°) = Collective + 0.866P − 0.5R
 Servo 3 (240°) = Collective − 0.866P − 0.5R
 ```
 
-All 3 PWM outputs must be on the **same hardware timer** — even 10 µs skew causes swash wobble.
+**Worked example** — pitch forward (+200 µs), no roll, collective at centre (1500 µs):
+```
+Servo 1: 1500 + 0     = 1500 µs  (perpendicular to pitch — doesn't move)
+Servo 2: 1500 + 173   = 1673 µs  (moves up)
+Servo 3: 1500 − 173   = 1327 µs  (moves down)
+→ Swash tilts forward ✓
+```
+
+**Pure collective** (altitude, no tilt): P = 0, R = 0 → all 3 servos move by the same amount → swash rises/falls flat.
+
+**Why CCPM over traditional mixing?**
+
+| Traditional | CCPM |
+|-------------|------|
+| 1 collective servo takes all collective load alone | Load shared equally across all 3 servos |
+| Asymmetric wear | Symmetric, more reliable |
+| Different servo types for different jobs | All 3 identical |
+
+All 3 PWM outputs must be on the **same hardware timer** — even 10 µs skew causes swash wobble the IMU picks up.
 
 ---
 
