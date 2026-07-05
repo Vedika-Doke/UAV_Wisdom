@@ -86,8 +86,41 @@ Transformation: **v_B = R_BI · v_I**
 - v_I = vector in inertial frame (e.g. GPS velocity)
 - v_B = same vector expressed in body frame (what the drone "feels")
 
-- **Quaternion** — 4-number alternative to the matrix; avoids **gimbal lock** (singularity at θ = ±90°), preferred in FC firmware
-- The FC updates the quaternion every IMU sample and derives R_BI from it when needed
+**Reading the matrix:** Each row tells you how one body-frame axis is oriented relative to the inertial frame. The (1,3) element −sθ shows that pitch alone (θ) couples into the X-axis of the body frame — this is why pitch affects forward speed in NED without any roll.
+
+**Gimbal lock:** At θ = ±90° (straight up or down), the roll and yaw axes align — you lose one degree of freedom and cannot distinguish φ from ψ. The math becomes singular (division by zero in the Euler extraction). For a helicopter pitching aggressively, this is a real concern.
+
+#### Quaternions — Why the FC Uses Them
+
+A quaternion q = [w, x, y, z] encodes a rotation as:
+- **w** = cos(θ/2) — scalar part (how much rotation)
+- **x, y, z** = sin(θ/2) × [axis] — vector part (which axis to rotate around)
+
+```
+|q| = 1  (unit quaternion — must be normalised each cycle)
+
+Rotation of vector v:   v' = q ⊗ v ⊗ q*
+  where q* = conjugate = [w, −x, −y, −z]
+```
+
+| Property | Euler Angles | Quaternion |
+|----------|-------------|-----------|
+| Representation | 3 numbers (φ, θ, ψ) | 4 numbers (w, x, y, z) |
+| Gimbal lock | Yes — singularity at θ = ±90° | **No** |
+| Interpolation | Non-linear, path-dependent | SLERP — smooth, shortest arc |
+| Composition (chaining rotations) | Multiply three 3×3 matrices | Single quaternion multiply |
+| FC firmware usage | Display/logging only | All internal computation |
+
+**Practical FC flow:**
+```
+IMU angular rate (ω) → quaternion integration → q_{k+1} = q_k + 0.5·q_k⊗[0,ω]·dt
+                                                          ↓
+                                              normalise |q| = 1
+                                                          ↓
+                                        derive R_BI when needed (Euler for logging)
+```
+
+The normalisation step every cycle prevents numerical drift from accumulating into a non-unit quaternion (which would introduce scaling errors in the rotation).
 
 ### 3. PID Controller — Real-time Orientation Correction
 
@@ -95,6 +128,39 @@ Transformation: **v_B = R_BI · v_I**
 Error = Target orientation − Current orientation (from IMU)
 PID output = Kp·error + Ki·∫error dt + Kd·d(error)/dt
 ```
+
+**What each term does:**
+
+| Term | Formula | Role | Tuning effect |
+|------|---------|------|---------------|
+| **Proportional (P)** | Kp × error | Pushes toward target proportional to how far off you are | Higher Kp → faster response, but oscillates if too high |
+| **Integral (I)** | Ki × ∫error dt | Eliminates steady-state error (e.g. wind constantly pushing one way) | Too high → wind-up, slow oscillation |
+| **Derivative (D)** | Kd × d(error)/dt | Damps rapid changes — predicts overshoot and brakes | Too high → amplifies sensor noise |
+
+**In practice on the FC (helicopter-specific):**
+
+```
+Roll PID:    error = φ_target − φ_measured    → lateral cyclic servo command
+Pitch PID:   error = θ_target − θ_measured    → longitudinal cyclic servo command
+Yaw PID:     error = ψ_rate_target − ψ_rate   → tail rotor servo command (rate mode)
+Altitude PID: error = h_target − h_measured   → collective servo command
+```
+
+> **Rate vs angle mode:** Yaw is typically controlled in **rate mode** (target = desired yaw rate, not absolute heading), because absolute heading hold needs magnetometer which can be disturbed near the motor.
+
+**Anti-windup:** Ki integrates error over time — if the helicopter is physically constrained (e.g. on the ground, servo limit hit), the integrator keeps growing. Anti-windup clamps the integral term when the output is saturated, preventing the PID from "winding up" a large I value that then causes overshoot when constraint is released. ArduPilot implements this as `ILIMIT` per axis.
+
+**Cascade structure (inner/outer loop):**
+```
+Outer loop (position, ~50 Hz):
+  position error → position PID → target velocity
+  velocity error → velocity PID → target attitude (φ_target, θ_target, thrust)
+
+Inner loop (attitude, ~400 Hz):
+  attitude error → attitude PID → target angular rate
+  angular rate error → rate PID → servo/motor commands
+```
+The inner loop runs 8× faster because attitude changes faster than position — the helicopter can flip in <0.5 s but takes seconds to drift sideways.
 
 The PID output drives the actuators to correct the error.
 
@@ -266,6 +332,28 @@ Algorithm:
 ### RRT\* — Optimal RRT
 
 Extends RRT with two key additions: **rewiring** and **cost-aware extension**. Asymptotically converges to the optimal path as samples → ∞.
+
+![How RRT* helps where RRT fails](./assets/rrt_star_vs_rrt.png)
+*Source: NPTEL — Drone Systems and Control, IISc*
+
+**Three ways RRT\* improves over RRT:**
+
+1. **Asymptotic Optimality** — converges to the optimal path as the number of samples increases
+2. **Cost-Aware Tree Rewiring** — after adding a new node, checks nearby nodes:
+   - Rewires connections to minimise the cost-to-come
+   - Selects the parent node that results in the **lowest path cost**
+3. **Higher-Quality Paths Without Post-Processing** — paths from RRT\* are generally smoother and shorter compared to RRT
+
+**RRT\* Key Idea** (vs plain RRT):
+
+![RRT* key idea — rewiring diagram](./assets/rrt_star_key_idea.png)
+*Source: NPTEL — Drone Systems and Control, IISc*
+
+- Use **set of nearby nodes** (not just nearest) — dashed rewiring area around new node
+- Connect new node to **best-cost parent** (minimises path cost from root)
+- **Rewire neighbours** to improve their cost if routing through q_new is cheaper
+- Tree **improves over time** — keeps exploring while optimising existing paths
+- Balances exploration and optimisation
 
 ```
 Extra steps vs RRT:
