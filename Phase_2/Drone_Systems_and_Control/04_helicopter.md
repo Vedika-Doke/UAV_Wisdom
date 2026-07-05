@@ -166,42 +166,7 @@ Flapping equalises the lift automatically — the disc tilts opposite to the adv
 
 ---
 
-## 10. Aerodynamic Effects
-
-### Ground Effect
-
-![Ground effect](https://commons.wikimedia.org/wiki/Special:FilePath/Ground_effect_heli.png)
-*Source: Wikimedia Commons*
-
-Within ~1 rotor diameter of the ground: downwash is blocked → 10–20% less power for same thrust (IGE). Design the ESC for **OGE** (out of ground effect) — the harder case.
-
-### Vortex Ring State
-
-![Vortex ring state](https://commons.wikimedia.org/wiki/Special:FilePath/Vortex_ring_helicopter.jpg)
-*Source: Wikimedia Commons*
-
-Descending vertically at ~300–500 fpm with power applied → rotor ingests its own downwash → lift collapses suddenly.
-
-- Adding collective **makes it worse**
-- Recovery: **forward cyclic** — fly out horizontally
-- FC firmware limits descent rate to prevent entry
-
-### Translational Lift
-
-At ~15–25 km/h forward speed, rotor exits its own downwash → 10–15% efficiency gain → helicopter pitches up slightly and yaw kicks. FC compensates automatically.
-
-### Autorotation
-
-![Autorotation airflow](https://commons.wikimedia.org/wiki/Special:FilePath/Airflow_in_Autorotation_HEB.jpg)
-*Source: Wikimedia Commons*
-
-Engine off → lower collective → air flows **up** through descending disc → rotor spins like a windmill → controlled glide.
-
-Near ground: aft cyclic to flare → pull collective to cushion touchdown using stored rotor kinetic energy.
-
----
-
-## 11. Stability
+## 10. Stability
 
 Helicopters are **inherently unstable** — FC must close the loop at all times (≥400 Hz).
 
@@ -214,7 +179,7 @@ Helicopters are **inherently unstable** — FC must close the loop at all times 
 
 ---
 
-## 12. Vibration
+## 11. Vibration
 
 | Source | Frequency | At 2000 RPM |
 |--------|-----------|-------------|
@@ -226,7 +191,7 @@ Helicopters are **inherently unstable** — FC must close the loop at all times 
 
 ---
 
-## 13. Servo & ESC Requirements
+## 12. Servo & ESC Requirements
 
 | Parameter | Servo | ESC |
 |-----------|-------|-----|
@@ -240,7 +205,7 @@ Helicopters are **inherently unstable** — FC must close the loop at all times 
 
 ---
 
-## 14. AIO PCB Design Checklist
+## 13. AIO PCB Design Checklist
 
 ### Power
 - [ ] Main ESC FET bridge — sized for OGE hover + 30% margin
