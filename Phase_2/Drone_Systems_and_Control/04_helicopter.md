@@ -361,25 +361,37 @@ At headspeed N RPM with n blades:
 
 ## 15. AIO PCB Design Checklist
 
-**Power**
-- [ ] Main ESC FET bridge sized for OGE hover + 30% margin
-- [ ] Dedicated switching BEC: 6–8.4 V, ≥10 A continuous, ≥15 A peak
-- [ ] Servo rail isolated from FC logic supply
+### Power
+- [ ] Main ESC stage: single high-current FET bridge — sized for OGE hover current + 30% margin
+- [ ] Dedicated switching BEC for servo rail: **6–8.4 V, ≥10 A continuous, ≥15 A peak**
+- [ ] Servo BEC output isolated from FC logic supply (separate LDO or filter)
+- [ ] Current sensing on main ESC output (for governor load estimation)
 
-**Sensing**
-- [ ] RPM input: 3.3 V tolerant, RC low-pass filter before MCU pin
-- [ ] Dual IMU, soft-mounted at board CoM
-- [ ] Magnetometer ≥20 mm from power traces/FETs
-- [ ] Barometer for altitude + descent rate (VRS prevention)
+### RPM & Governor
+- [ ] RPM sense input: tachometer pulse, **3.3 V tolerant**, RC low-pass filter before MCU pin
+- [ ] Governor PID in ESC firmware or FC (ArduPilot `H_RSC_MODE = 3` for governor mode)
 
-**Servo Output**
-- [ ] ≥4 hardware PWM channels, same timer peripheral (synchronised)
-- [ ] 16-bit timer resolution (<1 µs jitter)
+### Attitude Sensing
+- [ ] **Dual IMU** (e.g. ICM-42688-P primary + ICM-20689 backup) — fault detection + redundancy
+- [ ] IMU placed at board CoM, **soft-mounted** (foam/grommets)
+- [ ] Magnetometer (e.g. IST8310 or QMC5883L) — **≥20 mm from power traces, FETs, and inductors**
+- [ ] Barometer (e.g. MS5611, BMP388) for altitude + descent rate estimation (VRS prevention)
 
-**MCU & Comms**
-- [ ] STM32H7 / F7 (hardware FPU mandatory — quaternion math at 400 Hz)
-- [ ] MAVLink UART + telemetry UART + GPS UART
-- [ ] Hardware watchdog (IWDG) — servo safe position on MCU hang
+### Servo Output
+- [ ] **≥4 hardware PWM timer channels** (3 CCPM + 1 tail) — all on the **same timer peripheral** (synchronised)
+- [ ] 16-bit timer for <1 µs jitter
+- [ ] Optional: CAN/S.Bus/DShot for digital servo communication
+
+### MCU & Communication
+- [ ] STM32H7 or F7 — hardware FPU mandatory (quaternion math + CCPM mixing at 400 Hz)
+- [ ] ≥256 KB RAM for EKF state matrices, telemetry buffers, PID history
+- [ ] MAVLink-compatible UART for ArduPilot integration
+- [ ] Dual UART: telemetry + GPS
+
+### Safety
+- [ ] Hardware watchdog (IWDG) — resets MCU on hang; servo outputs go to safe position
+- [ ] Collective limit in firmware — prevent over-pitch at high headspeed (blade structural limit)
+- [ ] Descent rate limit (`PILOT_VELZ_MAX`) — VRS prevention in autopilot modes
 
 ---
 
