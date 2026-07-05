@@ -14,7 +14,7 @@ Combines accelerometer + gyroscope (and optionally magnetometer) into a single p
 | Optical | Laser/fibre-optic based — high precision, expensive |
 | **MEMS** | Micro Electro-Mechanical Systems — standard for UAVs |
 
-**Why MEMS:** Low cost · Lightweight · Power efficient
+**Why MEMS(Micro electro mechanical syste,ms):** Low cost · Lightweight · Power efficient
 
 ---
 
