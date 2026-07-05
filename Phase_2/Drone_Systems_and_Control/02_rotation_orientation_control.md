@@ -240,6 +240,63 @@ Common heuristics for drone path planning:
 
 ---
 
+### RRT — Rapidly-exploring Random Tree
+
+Sampling-based planner — doesn't need a discrete grid. Grows a tree by randomly sampling the free space and connecting samples to the nearest existing node.
+
+```
+Algorithm:
+1. Start tree at q_start
+2. Sample random point q_rand in free space
+3. Find nearest node q_near in tree
+4. Extend toward q_rand by step size δ → q_new
+5. If path q_near → q_new is collision-free, add q_new to tree
+6. Repeat until q_goal is reached (or close enough)
+```
+
+| Pros | Cons |
+|------|------|
+| Works in continuous, high-dimensional space (3D + heading) | Path is not optimal — often jagged |
+| No need to discretise the map | Probabilistically complete, not guaranteed |
+| Handles complex obstacles naturally | Requires post-processing (smoothing) |
+| Fast in practice for 3D environments | Non-deterministic — different path each run |
+
+---
+
+### RRT\* — Optimal RRT
+
+Extends RRT with two key additions: **rewiring** and **cost-aware extension**. Asymptotically converges to the optimal path as samples → ∞.
+
+```
+Extra steps vs RRT:
+4b. Choose parent: among all nodes within radius r of q_new,
+    pick the one that minimises total cost from start
+5b. Rewire: for all nodes within radius r, check if routing
+    through q_new gives a cheaper path — if yes, update parent
+```
+
+| | RRT | RRT\* |
+|--|-----|-------|
+| Optimality | Not optimal | Asymptotically optimal |
+| Speed | Faster | Slower (rewiring cost) |
+| Path quality | Jagged, suboptimal | Smoother, approaches optimal |
+| Memory | Lower | Higher (stores costs + rewires) |
+
+---
+
+### Full Comparison
+
+| Algorithm | Space | Optimal | Speed | Best for |
+|-----------|-------|---------|-------|----------|
+| **Dijkstra** | Discrete graph | Yes | Slow (explores all) | Small known maps |
+| **A\*** | Discrete graph | Yes (admissible h) | Fast | Grid-based navigation, known maps |
+| **RRT** | Continuous | No | Fast | Real-time planning, cluttered 3D space |
+| **RRT\*** | Continuous | Asymptotically | Medium | When path quality matters in continuous space |
+
+> **Rule of thumb:** Known static map → A\*. Unknown/dynamic environment or high-dimensional space → RRT/RRT\*.
+
+---
+
 ### In Drone Autopilots
 
 - **ArduPilot / PX4:** Use A\* (or variants like Theta\*, jump-point search) for obstacle-aware path planning in the companion computer layer (e.g. ROS Nav2, MAVROS)
