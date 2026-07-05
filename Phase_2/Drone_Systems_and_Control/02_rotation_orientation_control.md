@@ -57,7 +57,7 @@ Two common inertial frame conventions used in UAVs:
 
 ### 1. IMU — Inertial Measurement Unit
 - Detects current orientation (roll, pitch, yaw) using a **gyroscope** (angular rate) and **accelerometer** (gravity vector)
-- Typically a MEMS chip (e.g. MPU-6000, ICM-42688) soldered directly onto the AIO FC board
+- Typically a MEMS[micro electro mechanical systems] chip (e.g. MPU-6000, ICM-42688) soldered directly onto the AIO FC board
 - Runs at 1–8 kHz to keep up with fast dynamics
 
 ### 2. Rotation Matrices / Quaternions
