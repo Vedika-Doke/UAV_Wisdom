@@ -295,7 +295,7 @@ Measurement equation: z_k = H·x_k + v_k
 
 ### 1. Prediction Step (Time Update)
 
-![Kalman predict step](./assets/kalman_predict_step.png)
+![Kalman predict step](./assets/kalman_lec12_predict.png)
 *Source: NPTEL Lec 12 — Drone Systems and Control, IISc*
 
 ```
@@ -308,7 +308,7 @@ Covariance prediction: P_{k|k-1} = A·P_{k-1|k-1}·Aᵀ + Q
 
 ### 2. Update Step (Measurement Correction)
 
-![Kalman update step](./assets/kalman_update_step.png)
+![Kalman update step](./assets/kalman_lec12_update.png)
 *Source: NPTEL Lec 12 — Drone Systems and Control, IISc*
 
 ```
@@ -327,7 +327,7 @@ Update covariance:    P_{k|k} = (I − K_k·H)·P_{k|k-1}
 
 ### Kalman Gain — Intuition
 
-![Kalman gain intuition](./assets/kalman_gain_intuition.png)
+![Kalman gain intuition](./assets/kalman_lec12_gain.png)
 *Source: NPTEL Lec 12 — Drone Systems and Control, IISc*
 
 ```
