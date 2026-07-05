@@ -258,7 +258,7 @@ In practice for the AIO FC: the Kalman Filter is unbiased and efficient under Ga
 
 ## Kalman Filter — Discretized System (Lec 12)
 
-![Discretized system equations](./assets/kalman_discretized_system.png)
+![Discretized system equations](./assets/kalman_lec12_discretized.png)
 *Source: NPTEL Lec 12 — Kalman Filtering Technique, IISc*
 
 **State-space model (discrete time):**
