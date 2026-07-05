@@ -17,6 +17,7 @@
 | 01 | Swash-Plate Based Systems | [01_swash_plate.md](./01_swash_plate.md) | 🟢 done |
 | 02 | Rotation & Orientation Control (Roll/Pitch/Yaw, IMU, PID) | [02_rotation_orientation_control.md](./02_rotation_orientation_control.md) | 🟢 done |
 | 03 | Drone Sensors (MEMS Accel, Gyro, Magnetometer, Sensor Fusion) | [03_drone_sensors.md](./03_drone_sensors.md) | 🟢 done |
+| — | Helicopter Reference (anatomy, control, torque, vibration, servo/ESC specs) | [helicopter.md](./helicopter.md) | 🟢 done |
 
 ---
 
