@@ -166,6 +166,90 @@ How rotation (orientation) and translation (position) work together across commo
 
 ---
 
+## Autopilot Path Planning — A\* vs Dijkstra
+
+Path planning sits above the outer control loop: it computes a sequence of waypoints through a map, which the Position/Velocity Controller then follows one by one.
+
+### Dijkstra's Algorithm
+
+Explores all nodes in order of **cumulative cost from start**. Guarantees the shortest path, but expands in all directions equally — wasteful when you know where the goal is.
+
+```
+f(n) = g(n)
+
+where:
+  g(n) = actual cost from start to node n
+```
+
+**How it works:**
+1. Start with source node, cost = 0
+2. Visit lowest-cost unvisited neighbour
+3. Update neighbour costs if a cheaper path is found
+4. Repeat until goal is reached
+
+| Pros | Cons |
+|------|------|
+| Guaranteed optimal path | Explores entire cost map — slow on large grids |
+| Simple to implement | No sense of direction toward goal |
+| Works with any edge weights | O((V + E) log V) — expensive for dense maps |
+
+---
+
+### A\* Algorithm
+
+Adds a **heuristic** h(n) — an estimate of remaining cost to goal. This guides the search toward the goal, skipping unnecessary nodes.
+
+```
+f(n) = g(n) + h(n)
+
+where:
+  g(n) = actual cost from start to n  (same as Dijkstra)
+  h(n) = estimated cost from n to goal (heuristic)
+```
+
+Common heuristics for drone path planning:
+- **Euclidean distance** — straight-line distance to goal (admissible in open 3D space)
+- **Manhattan distance** — sum of axis-aligned distances (grid maps)
+
+**How it works:**
+1. Start with source, f = 0 + h(start)
+2. Always expand the node with lowest f(n)
+3. Update neighbours if cheaper path found
+4. Stop when goal is popped from the open set
+
+| Pros | Cons |
+|------|------|
+| Optimal if heuristic is admissible (never overestimates) | Heuristic design matters — bad h(n) → suboptimal or slow |
+| Much faster than Dijkstra in practice | More complex to implement |
+| Scales to 3D grid maps (drone 3D space) | Memory-intensive for large maps |
+
+---
+
+### Comparison
+
+| | Dijkstra | A\* |
+|--|----------|-----|
+| Heuristic | None | h(n) — distance estimate to goal |
+| Search pattern | Radially outward from start | Directed toward goal |
+| Optimality | Always optimal | Optimal if h(n) is admissible |
+| Speed | Slower (explores more) | Faster (focused search) |
+| Use in autopilots | Rarely (too slow for real-time) | **Standard** — ArduPilot, PX4 mission planners |
+| 3D support | Yes | Yes |
+
+> **Dijkstra = A\* with h(n) = 0.** A\* generalises Dijkstra; the heuristic is the only difference.
+
+---
+
+### In Drone Autopilots
+
+- **ArduPilot / PX4:** Use A\* (or variants like Theta\*, jump-point search) for obstacle-aware path planning in the companion computer layer (e.g. ROS Nav2, MAVROS)
+- The FC itself (STM32) typically does **not** run path planning — it only follows waypoints. Planning runs on a companion computer (Raspberry Pi, Jetson) and sends waypoints over MAVLink
+- For simple waypoint missions (no obstacle avoidance), a straight-line sequence is used — no graph search needed
+
+> **AIO PCB context:** Planning runs off-board. The AIO FC only needs to accept and execute waypoints via MAVLink — no extra compute needed on the board for A\*/Dijkstra.
+
+---
+
 ## AIO PCB Design Implications
 
 - **IMU placement is critical** — mount as close to the centre of mass as possible, isolated from motor/servo vibration. Use foam or rubber grommets between IMU and PCB if possible.
