@@ -333,9 +333,6 @@ Algorithm:
 
 Extends RRT with two key additions: **rewiring** and **cost-aware extension**. Asymptotically converges to the optimal path as samples → ∞.
 
-![How RRT* helps where RRT fails](./assets/rrt_star_vs_rrt.png)
-*Source: NPTEL — Drone Systems and Control, IISc*
-
 **Three ways RRT\* improves over RRT:**
 
 1. **Asymptotic Optimality** — converges to the optimal path as the number of samples increases
@@ -345,9 +342,6 @@ Extends RRT with two key additions: **rewiring** and **cost-aware extension**. A
 3. **Higher-Quality Paths Without Post-Processing** — paths from RRT\* are generally smoother and shorter compared to RRT
 
 **RRT\* Key Idea** (vs plain RRT):
-
-![RRT* key idea — rewiring diagram](./assets/rrt_star_key_idea.png)
-*Source: NPTEL — Drone Systems and Control, IISc*
 
 - Use **set of nearby nodes** (not just nearest) — dashed rewiring area around new node
 - Connect new node to **best-cost parent** (minimises path cost from root)
