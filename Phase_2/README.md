@@ -13,6 +13,14 @@ This phase combines NPTEL coursework on drone systems with hands-on PCB design w
 
 ---
 
+## Research
+
+| Section | Contents | Status |
+|---------|----------|:------:|
+| [Helicopter Mechanics & Rotorflight](./Helicopter_and_Rotorflight) | Single-rotor flight mechanics, Rotorflight firmware, custom board target path, presentation outline | 🟡 in progress |
+
+---
+
 ## Design Targets (AIO Helicopter FC+ESC Board)
 
 | Parameter | Target / Notes |
