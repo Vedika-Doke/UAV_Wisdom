@@ -89,11 +89,19 @@ PA1/PA2 are perfectly good pins, they just have no USB hardware behind them. So 
 
 ### A6. IMU SPI is broken — PB12 and PB13 are shorted together
 
-The merged net carries both the **IMU_CS** and **IMU_SCLK** labels. So the chip-select line and the SPI clock line to the gyro (the ICM-42688-P — TDK's 6-axis gyro + accelerometer, the flight sensor itself) are physically the same wire.
+I re-traced this region at 400% zoom to be certain, and the wiring is genuinely tangled. Following the wires (all visible in the snippet below):
+
+- **PB12** (pin 25) runs right through **two junction dots**. At the first dot, a wire drops down onto **PB13** (pin 26) — that's the short.
+- At the second dot, a branch climbs up to the long horizontal line whose far end carries the **IMU_CS** label.
+- The far right end of the same PB12 wire hooks *upward* into the **IMU_SCLK** label's tail.
+
+So PB12, PB13, IMU_CS and IMU_SCLK are all **one electrical net** — the chip-select line and the SPI clock line to the gyro (the ICM-42688-P — TDK's 6-axis gyro + accelerometer, the flight sensor itself) are physically the same wire, and it touches two MCU pins at once.
+
+While verifying I also found how this mess probably happened (orange box in the snippet): **PB10** (pin 21) has a wire that routes up and across toward the same area, turns down — and stops in mid-air just above the IMU_CS line, connected to nothing. On the F411, PB10 is an alternate SPI2 clock pin. It looks like the plan was SCLK on PB10 and CS on PB12, the PB10 connection was never completed (an off-grid miss), and the leftover wiring merged into one net.
 
 Why that can't work: on an SPI bus, chip-select (CS) has to stay *held low* for the entire transaction — it's how the sensor knows "I'm being talked to." The clock (SCLK), meanwhile, toggles up and down with every bit. One signal can't simultaneously stay still and toggle. The moment the clock starts, the sensor sees its chip-select bouncing and abandons the transaction. No gyro data, ever — which for a flight controller means no flight.
 
-![Sheet 3 — red box: PB12 and PB13 with the junction dots that merge them into one net carrying both IMU_CS and IMU_SCLK](images/A6_pb12_pb13_short.png)
+![Sheet 3, traced at 400% — red boxes: the two junction dots shorting PB12/PB13 (with the branch up to the IMU_CS line), and the wire's far end hooking into the IMU_SCLK tail. Orange box: PB10's wire ending in mid-air just above the IMU_CS line — the unfinished connection that likely caused all of this](images/A6_pb12_pb13_short.png)
 
 **Fix:** separate them — IMU_CS on PB12, IMU_SCLK on PB13, which is exactly what SPI2's default pinout wants anyway.
 
@@ -110,9 +118,19 @@ Every net between the F411 (flight controller) and the two G071s (ESC MCUs), the
 
 SWD is the two-wire debug/programming interface (SWDIO = data, SWCLK = clock) that we use to load firmware onto a bare STM32. Like USB in A5, these functions live on fixed pins: on the G071, SWCLK is **PA14**, full stop.
 
-On sheets 8 and 9 (both ESCs), the SWCLK wire pads route to **PC14-OSC32_IN** — a crystal-oscillator pin that has nothing to do with debugging — while PA14 is left unconnected. Result: a programmer physically cannot clock the debug port, so neither ESC MCU can ever be flashed. Brand-new blank chips with no way to put firmware on them.
+Each ESC has four programming pads next to the chip: SWDIO, SWCLK, GND and 3.3V. I traced both signal pads at high zoom (sheets 8 and 9 are identical):
 
-![Red boxes: the SWCLK2 programming pad (right) and PC14-OSC32_IN (left) where its wire actually lands — the real SWCLK pin, PA14, is unconnected](images/A8_swclk_pc14.png)
+- The **SWDIO pad is wired correctly** — its wire lands on PA13, which really is the G071's SWDIO pin. ✓
+- The **SWCLK pad's wire goes to the wrong pin**: it leaves the pad, climbs up and over the top of the chip symbol, comes down the left side, and terminates on **PC14-OSC32_IN** (pin 1) — the input for a 32 kHz watch crystal, a pin with no debug function whatsoever.
+- **PA14-BOOT0** (pin 21) — the only pin on the G071 where the SWCLK function exists — sits unconnected, marked with a no-connect cross.
+
+What happens in practice: the programmer sends its clock pulses into a crystal pin that ignores them. The debug port never receives a clock, so the SWD handshake never even starts — the programmer just reports "no target found." And unlike the flight controller (which could at least in theory be rescued over USB), the G071s have no other way in: **blank chips stay blank, on both ESCs.**
+
+How it probably happened: in the schematic symbol, PC14 sits directly above PA14 in the pin listing — this looks like a one-row mis-click that's invisible unless you actually follow the wire.
+
+![Sheets 8/9 — red boxes: the SWCLK2 pad with its wire heading up over the chip (right), and PC14-OSC32_IN (left) where that wire terminates. Orange box: PA14-BOOT0, the real SWCLK pin, crossed out as no-connect](images/A8_swclk_pc14.png)
+
+**Fix:** move the SWCLK pad's wire from PC14 to PA14. One wire, on each ESC sheet.
 
 One thing that is *not* a bug here: leaving PA14-BOOT0 floating is fine on the G071. Its factory option bytes default to nBOOT_SEL = 1, meaning the BOOT0 pin is ignored, and an empty chip automatically falls into the built-in bootloader (RM0444 §3.5). So no pull resistor needed — just route SWCLK to the right pin.
 
@@ -143,6 +161,8 @@ Is 3.45 V dangerous? Not immediately — but every digital part on this rail (F4
 ### B2. Crystal load caps are a bit off
 
 A quartz crystal is cut to oscillate at exactly its rated frequency only when it sees a specific capacitance across it — its "load capacitance," CL, printed in the datasheet. Our ABLS-8.000MHZ (an Abracon 8 MHz quartz crystal — the F411's clock reference) wants **18 pF**. The two capacitors on its pins appear *in series* from the crystal's point of view, so two 18 pF caps give 9 pF, plus roughly 5 pF of stray PCB capacitance ≈ **14 pF — 4 pF short**.
+
+To be clear about what's *right* here: the topology is the standard Pierce oscillator and is wired correctly — the crystal sits between PH0-OSC_IN (pin 5) and PH1-OSC_OUT (pin 6), with C6 to ground on the pin-5 side and C7 to ground on the pin-6 side. Only the two capacitor *values* are off.
 
 An underloaded crystal still oscillates, just slightly fast (a few tens of ppm) and with less stability margin. Not fatal for a flight controller, but it's a two-component fix: use ~30 pF caps (30/2 + 5 ≈ 20 pF, close enough), or switch to a 9–10 pF CL crystal.
 
@@ -180,9 +200,17 @@ That topology matches no standard SPI peripheral. The F411's SPI1 block drives o
 
 ### B6. Don't trust the AON7524's headline current rating
 
-MOSFET current ratings are really thermal ratings in disguise: the limit is how fast the package can dump heat into the board. The AON7524's headline 25 A assumes (datasheet note A) **one square inch of 2 oz copper per device, in still air** — that's the heatsink the number is measured with. Six of these FETs on a 25×25 mm board obviously can't each get a square inch; realistically they get a fraction of it, so the real continuous rating is well below the headline.
+The AON7524's datasheet says "25 A" on page 1. That number is misleading, and here's why.
 
-For us this is fine: a nano-UAV motor draws single-digit amps, and at 5 A with RDS(on) ≤ 4 mΩ the conduction loss is under 100 mW per FET — barely warm even with modest copper. The note is here so nobody sizes a future, bigger design off the "28 A" on page 1.
+A MOSFET isn't limited by current itself — it's limited by **heat**. Current flowing through the FET's small internal resistance generates heat; if that heat can't escape fast enough, the chip cooks. The FET package is tiny, so it can't shed the heat alone — it relies on the copper of the circuit board underneath acting as its heatsink. More copper = more cooling = more current allowed.
+
+So when the datasheet says 25 A, the fine print (note A) matters: that figure was measured with the FET mounted on **one square inch of thick (2 oz) copper, per device, in still air**. That's the "heatsink" behind the headline number.
+
+Now look at our board: it's 25×25 mm — *in total*, that's about one square inch — and it carries **six** of these FETs per motor plus everything else. Each FET might get a tenth of the copper the rating assumes. Less copper, less cooling, so the real safe continuous current is far below 25 A. The datasheet isn't lying; it's just measured in conditions our board doesn't provide.
+
+**Why this doesn't hurt us:** our nano-UAV motors only draw a few amps. At 5 A, the FET's resistance (4 mΩ) wastes only P = I²R = 5² × 0.004 = **0.1 W** — a tenth of a watt, barely warm even with minimal copper. So we're fine.
+
+The warning is for the future: if anyone reuses this power stage for a bigger craft and sizes it by the "25 A/28 A" on page 1, they'll burn the FETs. Always de-rate a MOSFET's headline current to match the copper you can actually give it.
 
 ---
 
