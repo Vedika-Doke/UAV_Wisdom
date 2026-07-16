@@ -300,7 +300,7 @@ We have neither: no servo connectors anywhere, and not a single UART broken out 
 
 1. SX1280 supplies → 3.3 V rail, never VBAT (A1) — but see D: SPI SX1280 is dead in RF2 anyway, plan for serial ELRS.
 2. FD6288 VCC → VBAT; delete the phantom `5V` net or add a real 5 V buck (A2). A 5 V ≥ 1 A buck is required for Rotorflight servos anyway, so probably add it.
-3. Spec the battery as 2S–4S everywhere; fix slide 4 of the presentation (A3).
+3. Spec the battery as 2S–4S everywhere
 4. ≥ 20 kΩ between VBAT and MPM3610 EN (A4).
 5. USB_DN/DP → PA11/PA12 (A5).
 6. Separate IMU_CS (PB12) and IMU_SCLK (PB13) (A6).
@@ -313,4 +313,3 @@ We have neither: no servo connectors anywhere, and not a single UART broken out 
 13. IMU INT1 → an EXTI pin on the FC, e.g. PA8 (B4).
 14. Give each SPI device a proper bus — one clock, separate chip selects (B5).
 15. Rotorflight items (D): MCU to F7/H7 class, serial ELRS on a UART, BOOT0 button, 2 LEDs, barometer, ≥1 Gbit flash, 5 V ≥ 1 A rail, ADC battery/5 V sensing, servo + UART headers.
-16. Repo hygiene: replace `ICM.pdf` (product brief) with the full DS-000347, delete the duplicate `STM32G071GBU6..pdf`.
