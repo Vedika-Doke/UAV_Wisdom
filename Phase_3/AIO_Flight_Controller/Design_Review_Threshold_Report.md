@@ -114,26 +114,6 @@ Every net between the F411 (flight controller) and the two G071s (ESC MCUs), the
 
 **Fix:** route a throttle-signal net from the F411 to each G071 (one timer-capable pin per ESC for DShot/PWM, or a UART pair if we want serial control), plus ideally a telemetry line back.
 
-### A8. ESC SWD clock is miswired — we can't even flash the G071s
-
-SWD is the two-wire debug/programming interface (SWDIO = data, SWCLK = clock) that we use to load firmware onto a bare STM32. Like USB in A5, these functions live on fixed pins: on the G071, SWCLK is **PA14**, full stop.
-
-Each ESC has four programming pads next to the chip: SWDIO, SWCLK, GND and 3.3V. I traced both signal pads at high zoom (sheets 8 and 9 are identical):
-
-- The **SWDIO pad is wired correctly** — its wire lands on PA13, which really is the G071's SWDIO pin. ✓
-- The **SWCLK pad's wire goes to the wrong pin**: it leaves the pad, climbs up and over the top of the chip symbol, comes down the left side, and terminates on **PC14-OSC32_IN** (pin 1) — the input for a 32 kHz watch crystal, a pin with no debug function whatsoever.
-- **PA14-BOOT0** (pin 21) — the only pin on the G071 where the SWCLK function exists — sits unconnected, marked with a no-connect cross.
-
-What happens in practice: the programmer sends its clock pulses into a crystal pin that ignores them. The debug port never receives a clock, so the SWD handshake never even starts — the programmer just reports "no target found." And unlike the flight controller (which could at least in theory be rescued over USB), the G071s have no other way in: **blank chips stay blank, on both ESCs.**
-
-How it probably happened: in the schematic symbol, PC14 sits directly above PA14 in the pin listing — this looks like a one-row mis-click that's invisible unless you actually follow the wire.
-
-![Sheets 8/9 — red boxes: the SWCLK2 pad with its wire heading up over the chip (right), and PC14-OSC32_IN (left) where that wire terminates. Orange box: PA14-BOOT0, the real SWCLK pin, crossed out as no-connect](images/A8_swclk_pc14.png)
-
-**Fix:** move the SWCLK pad's wire from PC14 to PA14. One wire, on each ESC sheet.
-
-One thing that is *not* a bug here: leaving PA14-BOOT0 floating is fine on the G071. Its factory option bytes default to nBOOT_SEL = 1, meaning the BOOT0 pin is ignored, and an empty chip automatically falls into the built-in bootloader (RM0444 §3.5). So no pull resistor needed — just route SWCLK to the right pin.
-
 ### A9. VCAP capacitor on the F411 is undersized
 
 The STM32F411's core actually runs at ~1.3 V, not 3.3 V — an on-chip regulator steps 3.3 V down internally, and the VCAP pin is where that regulator's output capacitor connects. That capacitor is part of the regulator's control loop: too small and the regulator can oscillate or sag during load spikes, which shows up as random crashes and hard faults that look exactly like firmware bugs.
@@ -300,7 +280,6 @@ We have neither: no servo connectors anywhere, and not a single UART broken out 
 5. USB_DN/DP → PA11/PA12 (A5).
 6. Separate IMU_CS (PB12) and IMU_SCLK (PB13) (A6).
 7. Add throttle + telemetry nets from the FC to each G071 (A7).
-8. ESC SWCLK → PA14 on both ESCs (A8).
 9. VCAP C32 → 4.7 µF (A9).
 10. Feedback divider → 102k/32.4k for a true 3.3 V rail (B1).
 11. Crystal caps → ~30 pF, or a 9 pF-CL crystal (B2).
