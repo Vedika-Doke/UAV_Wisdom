@@ -18,7 +18,7 @@ Datasheets :
 | STM32F411xC/xE (FC MCU) | ST DocID026289 Rev 7 | `STM32.pdf` |
 | STM32G071x8/xB (ESC MCU) | ST DS12232 | `ESC_MCU.pdf` |
 
-One housekeeping note before anything else: the `ICM.pdf` in the folder is only the 1-page product brief (PB-000072), not the actual datasheet. I pulled the full DS-000347 separately for this review — we should replace the file in the repo. Also `ESC_MCU.pdf` and `STM32G071GBU6..pdf` are byte-identical duplicates, one can go.
+One housekeeping note before anything else: the `ICM.pdf` in the folder is only the 1-page product brief (PB-000072), not the actual datasheet. I pulled the full DS-000347 separately for this review — we should replace the file in the repo.
 
 ---
 
