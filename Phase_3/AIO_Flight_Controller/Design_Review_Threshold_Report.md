@@ -69,8 +69,6 @@ Our slides claim the board runs from a single cell (1S = 3.0–4.2 V). The thres
 
 Upper end: 4S (16.8 V max) fits comfortably under the MPM3610's 21 V limit. 5S charges to exactly 21.0 V — zero margin, so no. 6S violates outright.
 
-Our presentation contradicts itself here — slide 4 says "VBAT 3.0–4.2 V → 3.3 V" (1S) while slide 26 assumes 2S. Only 2S–4S is electrically valid; the slides need fixing.
-
 ### A4. MPM3610 EN pin is tied straight to VIN — abs-max violation on 2S
 
 EN is the regulator's enable pin — pull it high and the regulator runs. The obvious shortcut is to tie EN to the input voltage so the chip is always on, and that's exactly what sheet 2 does: EN (pin 17) wired directly to IN (pin 16) = VBAT.
