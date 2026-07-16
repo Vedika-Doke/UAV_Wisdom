@@ -1,10 +1,6 @@
 # AIO Flight Controller — Design Review (Datasheet Thresholds vs Schematic)
 
-**Date:** 16 July 2026
-
-Before sending this board out, I sat down and read every datasheet in `Datasheets/` at the threshold level — absolute maximum ratings, recommended operating conditions, and the electrical characteristics tables — and then traced the schematic (`schematic_Design/Schematic_diagram.pdf`, 11 pages) pin by pin against them. This document is what I found. For every issue I've added a snippet from the schematic so you can see exactly where the problem is on the sheet.
-
-Two datasheet terms that come up constantly below, defined once here:
+Terms used:
 
 - **Absolute maximum rating (abs-max):** the voltage/current beyond which the chip can be *permanently damaged*. It is not an operating point — you're not allowed to touch it even for a moment.
 - **UVLO (under-voltage lockout):** a built-in safety that keeps a chip switched OFF until its supply rises above a threshold. Below that voltage the chip simply refuses to start, so a supply that never crosses the UVLO threshold means the chip never turns on at all.
