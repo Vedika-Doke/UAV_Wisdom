@@ -9,7 +9,7 @@ Two datasheet terms that come up constantly below, defined once here:
 - **Absolute maximum rating (abs-max):** the voltage/current beyond which the chip can be *permanently damaged*. It is not an operating point — you're not allowed to touch it even for a moment.
 - **UVLO (under-voltage lockout):** a built-in safety that keeps a chip switched OFF until its supply rises above a threshold. Below that voltage the chip simply refuses to start, so a supply that never crosses the UVLO threshold means the chip never turns on at all.
 
-Datasheets I worked from:
+Datasheets :
 
 | Part | Document | File |
 |---|---|---|
@@ -26,7 +26,7 @@ One housekeeping note before anything else: the `ICM.pdf` in the folder is only 
 
 ---
 
-## A. Critical issues — these will damage hardware or the board simply won't work
+## A. Critical issues — these might damage hardware or the board might not work
 
 ### A1. SX1280 is powered from VBAT — it will die at power-on
 
@@ -56,7 +56,7 @@ Three consequences, in increasing subtlety:
 
 **Fix:** feed FD6288 VCC directly from VBAT (2S = 7.4–8.4 V). Its abs-max is 25 V and recommended max is 20 V, so we're safe up to 4S. Bonus: the MOSFET gates then get driven at ~8.4 V instead of 5 V, which is well inside the AON7524's ±12 V gate limit and actually gives *lower* on-resistance (less heat) than 5 V drive.
 
-### A3. 1S operation is impossible — this is a 2S–4S design, full stop
+### A3. 1S operation is not possible — this is a 2S–4S design. (discussed in ealier meet)
 
 Our slides claim the board runs from a single cell (1S = 3.0–4.2 V). The thresholds say otherwise, twice over:
 
@@ -127,7 +127,7 @@ The datasheet (Table 16) is explicit: packages with a **single VCAP pin need 4.7
 
 ---
 
-## B. Wrong values / marginal — it might work, but only by luck
+## B. Wrong values / marginal Issues
 
 ### B1. Our "3.3 V" rail is actually 3.45 V
 
@@ -185,7 +185,7 @@ For us this is fine: a nano-UAV motor draws single-digit amps, and at 5 A with R
 
 ---
 
-## C. Things I checked that are actually fine
+## C. Things that are checked 
 
 | Interface | Requirement (datasheet) | Our design | Verdict |
 |---|---|---|---|
