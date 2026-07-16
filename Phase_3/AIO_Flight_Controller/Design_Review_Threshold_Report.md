@@ -89,7 +89,7 @@ PA1/PA2 are perfectly good pins, they just have no USB hardware behind them. So 
 
 ### A6. IMU SPI is broken — PB12 and PB13 are shorted together
 
-I traced this twice because I didn't believe it the first time. On sheet 3 there's a junction dot joining PB12 and PB13, and the merged net carries both the **IMU_CS** and **IMU_SCLK** labels. So the chip-select line and the SPI clock line to the gyro (the ICM-42688-P — TDK's 6-axis gyro + accelerometer, the flight sensor itself) are physically the same wire.
+The merged net carries both the **IMU_CS** and **IMU_SCLK** labels. So the chip-select line and the SPI clock line to the gyro (the ICM-42688-P — TDK's 6-axis gyro + accelerometer, the flight sensor itself) are physically the same wire.
 
 Why that can't work: on an SPI bus, chip-select (CS) has to stay *held low* for the entire transaction — it's how the sensor knows "I'm being talked to." The clock (SCLK), meanwhile, toggles up and down with every bit. One signal can't simultaneously stay still and toggle. The moment the clock starts, the sensor sees its chip-select bouncing and abandons the transaction. No gyro data, ever — which for a flight controller means no flight.
 
