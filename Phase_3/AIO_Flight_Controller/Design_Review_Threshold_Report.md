@@ -210,64 +210,59 @@ That topology matches no standard SPI peripheral. The F411's SPI1 block drives o
 
 ## D. Can Rotorflight actually run on this board?
 
-Short answer: **not as designed** — and some of the blockers are not fixable with schematic tweaks alone.
+Short answer: **no, not as designed.** There are two kinds of problems: things the firmware itself won't support, and hardware Rotorflight expects that our board doesn't have.
 
-**Firmware-side blockers:**
+### D1. Problems on the firmware side
 
-- **The F411 is EOL in Rotorflight.** The [rotorflight-firmware README](https://github.com/rotorflight/rotorflight-firmware) says it directly: "support for lesser MCUs like STM32G474 and STM32F411 is EOL and will be removed soon." Building a new board around the F411 in 2026 means building for a target the firmware is about to drop — we'd be pinned to old releases forever. We should seriously consider an F722/H743-class MCU for Rev B.
-- **SPI ExpressLRS is compiled out of Rotorflight 2.** Some flight controllers drive the radio chip directly over SPI, with the receiver protocol implemented inside the flight firmware — that's what our SX1280-on-SPI design assumes. Rotorflight 2 has removed that path: in [`src/main/target/STM32_UNIFIED/target.h`](https://github.com/rotorflight/rotorflight-firmware/blob/master/src/main/target/STM32_UNIFIED/target.h), both `USE_RX_EXPRESSLRS` and `USE_RX_SX1280` are `#undef`'d, i.e. the code is excluded at build time. So even after fixing the SX1280's power (A1) and the shared-bus mess (B5), Rotorflight simply contains no code to talk to it. The supported path is a self-contained serial ELRS receiver module wired to a UART.
+**Our main chip is being retired by Rotorflight.**
+Rotorflight is dropping support for the STM32F411 — the [rotorflight-firmware README](https://github.com/rotorflight/rotorflight-firmware) says: "support for lesser MCUs like STM32G474 and STM32F411 is EOL and will be removed soon." If we build the board around the F411, we'd be stuck on old firmware versions forever, with no updates or bug fixes. For Rev B we should use a chip Rotorflight plans to keep, like the STM32F722 or H743.
 
-**Hardware requirements from the Rotorflight FC design spec ([rotorflight-ref-design/FC-Design-Requirements.md](https://github.com/rotorflight/rotorflight-ref-design/blob/master/FC-Design-Requirements.md)) that we're missing:**
+**Rotorflight won't talk to our radio chip.**
+Our design has the SX1280 radio chip soldered on the board, connected to the main chip over SPI. For that to work, the flight firmware itself must contain the radio code. Rotorflight 2 deleted that code — in [`target.h`](https://github.com/rotorflight/rotorflight-firmware/blob/master/src/main/target/STM32_UNIFIED/target.h) the lines `USE_RX_EXPRESSLRS` and `USE_RX_SX1280` are switched off, so the radio driver isn't even built into the firmware. It doesn't matter how well we wire the SX1280 — Rotorflight has no code to use it.
 
-**1. A DFU button.**
-Every STM32 ships from the factory with a small bootloader burned permanently into system ROM — it can't be erased or corrupted. Which program runs at power-up is chosen by the BOOT0 pin: BOOT0 low → run our firmware from flash; BOOT0 high → run the ROM bootloader, which enumerates over USB as a "DFU device" that any PC can write new firmware to. This is the safety net: if a firmware flash goes wrong and bricks the board, the user holds the button, plugs in USB, and reflashes — no special hardware needed. That's why Rotorflight makes it mandatory: their users are hobby pilots with a USB cable, not engineers with an ST-Link.
+What Rotorflight *does* support: a ready-made ELRS receiver module (a small board you buy) connected by a simple serial wire (UART). So for Rev B, we remove the on-board radio section and add a 4-pin receiver connector instead: TX, RX, 5 V, GND.
 
-On our board (sheet 3), BOOT0 is permanently strapped low through R20 (10 kΩ) with no button. If a flash ever goes bad, the only way in is the SWD pads with a debug probe — fine for us in the lab, unacceptable for an end user.
+### D2. Hardware Rotorflight expects that we don't have
 
-*Rev B change:* keep the 10 kΩ pull-down (so normal boots are unaffected), add a small tactile switch from BOOT0 to 3.3 V. Pressing it during power-up wins against the pull-down and forces the bootloader. Two components, standard on every commercial FC.
+These come from Rotorflight's official board-design checklist: [FC-Design-Requirements.md](https://github.com/rotorflight/rotorflight-ref-design/blob/master/FC-Design-Requirements.md).
 
-**2. Two indicator LEDs.**
-The firmware's only way to talk to the pilot without a laptop. Rotorflight drives them with distinct blink patterns for each state: armed/disarmed, calibration in progress, failsafe triggered, USB connected, error codes. Without them the board is a black box — you can't even tell if it powered up. We have zero LEDs anywhere (not even a power LED on the 3.3 V rail).
+**1. A firmware-recovery button (DFU button).**
+Every STM32 has a permanent factory program inside it that can never be erased. If you hold the BOOT0 pin high while powering on, the chip runs that factory program instead of our firmware — and it shows up on a PC over USB, ready to accept new firmware. This is the safety net: if a firmware update goes wrong, the user holds the button, plugs in USB, and re-flashes. No special tools needed.
+*Our board:* BOOT0 is permanently tied low — there is no button. If firmware ever gets corrupted, the only recovery is with a lab programming tool.
+*Rev B:* add one small push-button from BOOT0 to 3.3 V. That's it.
 
-*Rev B change:* two GPIO-driven LEDs (any free pins) with ~1 kΩ series resistors, plus ideally a third hardwired power LED on 3.3 V. Costs three pins-worth of board space, saves hours of "is it even on?" debugging.
+**2. Two status LEDs.**
+The LEDs are how the board talks to the pilot in the field: different blink patterns mean armed, calibrating, failsafe, error, and so on. Our board has zero LEDs — you can't even tell if it's powered.
+*Rev B:* two LEDs on spare pins, plus ideally one always-on power LED.
 
-**3. A barometer (SPL06 / DPS310 class).**
-A pressure sensor measures atmospheric pressure, which falls predictably with height — modern parts like the DPS310 resolve pressure changes corresponding to a few centimetres of altitude. The gyro/accelerometer alone can't hold altitude: integrating acceleration to get height drifts within seconds. The baro provides the absolute reference that altitude-hold and rescue/autolevel-climb functions servo against. Rotorflight is helicopter-focused where altitude hold and rescue mode are headline features, so the reference design requires one on-board.
+**3. A barometer (air-pressure sensor).**
+Air pressure drops as you go up, so a pressure sensor works as an altitude sensor — good ones detect height changes of a few centimetres. The gyro alone cannot hold altitude (its estimate drifts within seconds), so altitude-hold and rescue modes need the barometer. We don't have one.
+*Rev B:* add an SPL06 or DPS310 — a tiny chip that can share the gyro's SPI bus.
 
-We have nothing — page 4 is the IMU alone.
+**4. Bigger blackbox memory.**
+Blackbox is the flight recorder: it logs the gyro and control data used for tuning the craft. Our 16 MB flash chip fills up in about one minute of logging — one short hover. Rotorflight asks for at least 128 MB and recommends the W25N01G, which is the same size and wiring as our chip, just 8× the storage.
+*Rev B:* swap the part number. Wiring barely changes.
 
-*Rev B change:* an SPL06-001 or DPS310 next to the IMU. Both are ~2 mm LGA parts, run on 3.3 V, and can share the IMU's SPI bus with their own chip-select (or sit on I²C). One chip, two caps, one CS line.
+**5. A real 5 V power output.**
+On a helicopter, the flight controller powers the servos, the receiver, and the GPS — and they all run on 5 V. Rotorflight expects the board to make that 5 V from the battery, at 1 A or more. We have no 5 V source at all — and remember issue A2: our gate drivers are connected to a `5V` net that nothing generates. Adding one real 5 V regulator fixes both problems at once.
+*Rev B:* one buck regulator, battery in, 5 V ≥ 1 A out, feeding the servo and receiver connectors.
 
-**4. Blackbox flash ≥ 1 Gbit.**
-Blackbox is Rotorflight's flight recorder: every loop iteration it can log gyro, setpoint, PID terms, motor/servo outputs — the data you need to diagnose oscillations and tune the craft. At full rate this is megabytes per minute: log at ~2 kHz with ~30 fields and our 16 MB W25Q128 fills in roughly a minute of flight — barely one test hover. That's why the spec calls for ≥ 1 Gbit (128 MB) and why Rotorflight's docs list the W25Q128 as "supported but not large enough."
+**6. Battery voltage monitoring.**
+The firmware needs to *measure* the battery to warn about low charge, trigger failsafe before the pack is damaged, and adjust the controls as voltage drops during flight. It should also watch the 5 V rail so it can alarm if a stalled servo is dragging it down. Each measurement needs only two resistors (to scale the voltage down to what the chip can read) and one small capacitor. We have none of it — not a single measurement input is connected.
+*Rev B:* two resistor pairs, two caps, two chip pins.
 
-The recommended part, the W25N01G (1 Gbit), is the same manufacturer, same SPI interface, same SOIC-8 footprint family — but it's NAND flash rather than NOR, which is how it gets 8× the density at similar cost. Firmware already has the driver.
+**7. Servo connectors and a receiver connector.**
+A helicopter needs 3–4 standard servo plugs (signal, 5 V, ground) and a plug for the receiver (UART). One planning rule matters: inside an STM32, groups of output pins share internal timers, and every pin in a group must run at the same speed. Servos are slow (50–333 updates/second) and motor signals are fast (thousands/second), so servo pins and motor pins must be assigned to *different* timer groups. This has to be decided when drawing the schematic — it cannot be fixed later in software. Our board has no servo connectors and no receiver connector at all.
 
-*Rev B change:* swap U3's part number to W25N01GVZEIG; wiring on sheet 5 barely changes.
+### D3. The bottom line
 
-**5. A 5 V ≥ 1 A rail.**
-This is the biggest philosophical difference between a quad FC and a heli FC. On a helicopter, the FC is the power hub: cyclic/collective servos (2–4 of them), the receiver, and a GPS all run from 5 V, and servos stall-load in bursts — hence the ≥ 1 A (really, more is better) requirement with good transient behaviour. Rotorflight's spec expects the FC to source this from the battery through an on-board buck.
+For Rev B, the Rotorflight checklist is:
 
-We have no 5 V source at all. Worse, the gate driver sheets *reference* a `5V` net that nothing generates (issue A2) — the design almost seems to assume this rail exists. That makes this fix a two-for-one: add a real 5 V buck (e.g. an MPM3610A configured for 5 V, or a TPS62933-class part for more current) and it can both feed servo/peripheral headers *and* be considered as the gate driver supply — though for the drivers specifically, VBAT-direct remains the simpler, better-margin option (see A2).
+1. Change the main chip: F411 → F722 or H743.
+2. Remove the on-board SX1280 radio; add a 4-pin serial receiver connector instead.
+3. Add: recovery button, two LEDs, barometer, bigger flash chip, 5 V regulator, battery-monitoring resistors, and servo connectors with a proper timer plan.
 
-*Rev B change:* one buck module VBAT→5 V ≥ 1 A, output on servo headers + peripheral pins, with its rail also routed to an ADC divider (next item).
-
-**6. ADC voltage sensing of the battery and the 5 V rail.**
-The firmware's health monitoring. Battery voltage sensing is how Rotorflight generates low-battery warnings, triggers failsafe/rescue before the pack sags into damage territory, and compensates PID/throttle as voltage drops through the flight (a heli behaves noticeably differently at 25.2 V vs 21 V). Sensing the 5 V rail catches a different failure: servo stall or a brownout dragging the rail down — the firmware can alarm before the receiver browns out mid-flight.
-
-The wiring is trivial — a two-resistor divider per rail scaling it into the MCU's 0–3.3 V ADC range (e.g. 10:1 for the battery: 25.2 V → 2.52 V), one small filter cap each. We have literally no ADC input connected on the FC — every analog-capable pin is either used digitally or floating.
-
-*Rev B change:* two dividers, two caps, two ADC pins. Optionally a hall/shunt current sensor on the battery lead for current & mAh-used telemetry, which Rotorflight also supports.
-
-**7. Servo headers with correct timer allocation, and a receiver UART.**
-Two related "connector + pin-planning" items:
-
-- *Servo headers:* a helicopter needs 3–4 standard three-pin servo connectors (signal / 5 V / GND). The subtlety is the **timer allocation** behind the signal pins. Inside an STM32, PWM pins are grouped under shared timer peripherals, and all pins on one timer share one period. Servos run at 50–333 Hz while motor ESC signals run at kHz rates — so servo pins and motor pins must come from *different* timers, and ideally each servo group sits on its own timer so refresh rates can be set independently. Rotorflight's spec spells out this grouping; it has to be designed into the pinout from the start, because it's unfixable in firmware if two conflicting outputs share a timer.
-- *Receiver UART:* with SPI-ELRS gone (see above), the radio link is a separate receiver module wired to a UART — so the board needs a broken-out header with TX, RX, 5 V and GND placed where a receiver can plug in directly. A second spare UART (GPS, telemetry) is strongly recommended.
-
-We have neither: no servo connectors anywhere, and not a single UART broken out — on sheet 3 the F411's UART-capable pins are part of the big no-connect group.
-
-**Putting it together**, the Rotorflight to-do list for Rev B is: MCU upgrade (F411 → F722/H743 class), drop the SPI-SX1280 in favour of a serial ELRS module on a UART header, then add: BOOT0 button, two status LEDs, SPL06/DPS310 barometer, W25N01G blackbox flash, a 5 V ≥ 1 A buck feeding servo headers, battery + 5 V ADC dividers, and servo connectors with a clean timer plan. None of these is individually hard — but together they're the difference between "a board with the right chips" and "a board Rotorflight can actually fly."
+None of these is individually hard. Together they're the difference between "a board with the right chips on it" and "a board Rotorflight can actually fly."
 
 ---
 
