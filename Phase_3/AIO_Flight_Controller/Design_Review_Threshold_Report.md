@@ -5,18 +5,26 @@ Terms used:
 - **Absolute maximum rating (abs-max):** the voltage/current beyond which the chip can be *permanently damaged*. It is not an operating point — you're not allowed to touch it even for a moment.
 - **UVLO (under-voltage lockout):** a built-in safety that keeps a chip switched OFF until its supply rises above a threshold. Below that voltage the chip simply refuses to start, so a supply that never crosses the UVLO threshold means the chip never turns on at all.
 
-Datasheets :
+## Components and datasheets
 
-| Part | Document | File |
-|---|---|---|
-| MPM3610GQV (3.3V buck) | MPS datasheet Rev 1.01 | `MPM.pdf` |
-| FD6288/FD6288Q (gate driver) | Fortior preliminary datasheet | `GATEDRIVER.pdf` |
-| AON7524 (MOSFET) | Alpha & Omega Rev 1.0, Mar 2013 | `MOSFETdatasheet.pdf` |
-| ICM-42688-P (IMU) | TDK DS-000347 Rev 1.2 | see note below |
-| SX1280/SX1281 (RF) | Semtech Rev 2.2, May 2018 | `RFTRANSRECIEVER.pdf` |
-| W25Q128JV (flash) | Winbond Rev F, Mar 2018 | `FLASHMEMORY.pdf` |
-| STM32F411xC/xE (FC MCU) | ST DocID026289 Rev 7 | `STM32.pdf` |
-| STM32G071x8/xB (ESC MCU) | ST DS12232 | `ESC_MCU.pdf` |
+Every major part on the board, what it is, and the datasheet reviewed against:
+
+| Part code | What it is | Its job on this board | Datasheet / file |
+|---|---|---|---|
+| **STM32F411CEU6** | MCU (ST) | The flight controller — runs the flight firmware: gyro, PID loop, motor commands, PC link | ST DocID026289 Rev 7, `STM32.pdf` |
+| **STM32G071GBU6** | MCU (ST) | The ESC brain — one per motor; generates the six timed PWM signals that commutate a brushless motor | ST DS12232, `ESC_MCU.pdf` |
+| **MPM3610GQV-P** | Synchronous step-down (buck) DC-DC converter *module* (MPS) — regulator with the inductor built into the package; 21 V in, 1.2 A out | Converts battery voltage to the 3.3 V rail that powers every digital chip | MPS Rev 1.01, `MPM.pdf` |
+| **ICM-42688-P** | 6-axis MEMS inertial measurement unit (TDK) — 3-axis gyroscope + 3-axis accelerometer on SPI | The flight sensor: measures rotation rate and acceleration thousands of times a second; the input to the PID loop | TDK DS-000347 Rev 1.2, see note below |
+| **SX1280IMLTRT** | 2.4 GHz radio transceiver IC (Semtech) — the LoRa/FLRC chip that ExpressLRS control links are built on | Meant to receive the pilot's stick commands over the air, on-board (SPI-ELRS style) | Semtech Rev 2.2 May 2018, `RFTRANSRECIEVER.pdf` |
+| **W25Q128JVSIQ** | 128 Mbit (16 MB) serial NOR flash memory (Winbond), SPI | Blackbox storage — records flight logs for tuning | Winbond Rev F Mar 2018, `FLASHMEMORY.pdf` |
+| **FD6288Q** | Three-phase half-bridge gate driver IC (Fortior) — level-shifts and amplifies six logic PWM inputs into MOSFET gate drive, with built-in dead-time protection | The interface between each ESC MCU's 3.3 V signals and the power MOSFETs | Fortior preliminary, `GATEDRIVER.pdf` |
+| **AON7524** | N-channel power MOSFET (Alpha & Omega) — 30 V, ~4 mΩ, DFN3×3 package | The power switches — six per motor arranged as a three-phase bridge; they carry the actual motor current | AOS Rev 1.0 Mar 2013, `MOSFETdatasheet.pdf` |
+| **BAT54** | Small-signal Schottky diode — 30 V, 200 mA | Bootstrap diodes in the gate driver circuit — charge the flying capacitors that power the high-side gate drive | — |
+| **ABLS-8.000MHZ-B2-T** | 8 MHz quartz crystal (Abracon), 18 pF load | Clock reference for the F411, multiplied on-chip to 100 MHz | — |
+| **ECS-520-8-47-CKM** | 52 MHz quartz crystal (ECS) | Frequency reference for the SX1280 — its 2.4 GHz carrier is synthesized from this | — |
+| **TL3342F160QG** | Miniature tactile push-button switch (E-Switch) | Reset buttons for the three MCUs | — |
+| **EEE-FK1E101P** | 100 µF 25 V aluminium electrolytic capacitor (Panasonic) | Bulk capacitor on the battery rail beside each MOSFET bridge — supplies the motor's big current pulses | — |
+| **530470310** | 3-pin Molex PicoBlade connector | Motor connectors — each motor's three phase wires plug in here | — |
 
 One housekeeping note before anything else: the `ICM.pdf` in the folder is only the 1-page product brief (PB-000072), not the actual datasheet. I pulled the full DS-000347 separately for this review — we should replace the file in the repo.
 
@@ -28,7 +36,7 @@ One housekeeping note before anything else: the `ICM.pdf` in the folder is only 
 
 **The problem in one line:** the radio chip is a 3.3 V-class part, and we've connected it straight to the battery.
 
-The SX1280's absolute maximum on its supply pins (VBAT / VBAT_IO) is **3.9 V**, and its normal operating range is 1.8–3.7 V. On sheet 7, though, VR_PA, VBAT_IO and VDD_IN of U4 are all fed from the **VBAT** port — the same raw-battery net that feeds the gate drivers. (Confusing naming: the *pin* on the SX1280 is called VBAT, but it expects ~3.3 V, not battery voltage. That's probably exactly how this mistake happened.)
+The SX1280 (Semtech's 2.4 GHz radio transceiver — the chip that ExpressLRS control links are built on) has an absolute maximum on its supply pins (VBAT / VBAT_IO) of **3.9 V**, and its normal operating range is 1.8–3.7 V. On sheet 7, though, VR_PA, VBAT_IO and VDD_IN of U4 are all fed from the **VBAT** port — the same raw-battery net that feeds the gate drivers. (Confusing naming: the *pin* on the SX1280 is called VBAT, but it expects ~3.3 V, not battery voltage. That's probably exactly how this mistake happened.)
 
 Since the rest of the design can't actually run below 2S (see A3), the battery net sits at 7.4–8.4 V — roughly **twice what the radio can survive**. Even a single fresh cell at 4.2 V is already over the 3.9 V limit. The radio dies the moment a battery is plugged in.
 
@@ -38,9 +46,9 @@ Since the rest of the design can't actually run below 2S (see A3), the battery n
 
 ### A2. The gate drivers have no power — the `5V` net doesn't exist anywhere
 
-Quick background: a MOSFET needs several volts on its gate to switch on, and the MCU's 3.3 V logic can't drive that directly — that's the gate driver's job (the FD6288Q here). It takes the MCU's small PWM signals in and pushes strong, higher-voltage pulses out to the six MOSFETs. But to do that, the gate driver itself needs a supply.
+Quick background: a MOSFET needs several volts on its gate to switch on, and the MCU's 3.3 V logic can't drive that directly — that's the gate driver's job (here the FD6288Q, Fortior's three-phase gate driver IC). It takes the MCU's small PWM signals in and pushes strong, higher-voltage pulses out to the six MOSFETs. But to do that, the gate driver itself needs a supply.
 
-On sheets 10 and 11, the FD6288Q VCC pin on both U6 and U7, plus the three BAT54 bootstrap diodes, sit on a net labelled `5V`. Here's the catch: in a multi-sheet schematic, every net label carries a cross-reference list showing which other sheets it appears on. The `5V` net's list only points to `gatedriver1[3B], gatedriver2[2A], gatedriver2[3B]` — i.e. **only back to the gate driver sheets themselves**. No regulator, no connector, nothing anywhere on the board actually produces this 5 V. The only regulator we have is the MPM3610 making 3.3 V (sheet 2), and USB's 5 V is a separate isolated net (`USB_5V`, sheet 6) that goes nowhere near the drivers.
+On sheets 10 and 11, the FD6288Q VCC pin on both U6 and U7, plus the three BAT54s (small Schottky diodes forming the bootstrap circuit that powers the high-side gate drive), sit on a net labelled `5V`. Here's the catch: in a multi-sheet schematic, every net label carries a cross-reference list showing which other sheets it appears on. The `5V` net's list only points to `gatedriver1[3B], gatedriver2[2A], gatedriver2[3B]` — i.e. **only back to the gate driver sheets themselves**. No regulator, no connector, nothing anywhere on the board actually produces this 5 V. The only regulator we have is the MPM3610 (a buck converter module that steps battery voltage down) making 3.3 V (sheet 2), and USB's 5 V is a separate isolated net (`USB_5V`, sheet 6) that goes nowhere near the drivers.
 
 ![Sheet 10 — red boxes: the two `5V` net labels; note their cross-reference lists only name the gate driver sheets, so nothing generates this rail](images/A2_5v_net.png)
 
@@ -50,7 +58,7 @@ Three consequences, in increasing subtlety:
 2. **It damages the drivers too.** The FD6288's logic inputs are only rated up to VCC + 0.3 V. With VCC = 0 V, the very first 3.3 V PWM pulse from the ESC MCU exceeds the input rating by ~3 V. Chips generally don't tolerate signals on their inputs while unpowered.
 3. **Even a real 5 V rail wouldn't be enough.** The FD6288's UVLO turn-on threshold is 4.2 V typical but up to **5.0 V worst case** — meaning an unlucky production part connected to a perfect 5.00 V rail *still* never turns on. Fortior's own recommended supply range starts at 5 V and runs to 20 V; they clearly intend this chip to run from the battery, not a logic rail.
 
-**Fix:** feed FD6288 VCC directly from VBAT (2S = 7.4–8.4 V). Its abs-max is 25 V and recommended max is 20 V, so we're safe up to 4S. Bonus: the MOSFET gates then get driven at ~8.4 V instead of 5 V, which is well inside the AON7524's ±12 V gate limit and actually gives *lower* on-resistance (less heat) than 5 V drive.
+**Fix:** feed FD6288 VCC directly from VBAT (2S = 7.4–8.4 V). Its abs-max is 25 V and recommended max is 20 V, so we're safe up to 4S. Bonus: the MOSFET gates then get driven at ~8.4 V instead of 5 V, which is well inside the ±12 V gate limit of the AON7524s (the 30 V, ~4 mΩ N-channel power MOSFETs that do the actual current switching) and actually gives *lower* on-resistance (less heat) than 5 V drive.
 
 ### A3. 1S operation is not possible — this is a 2S–4S design. (discussed in ealier meet)
 
@@ -83,7 +91,7 @@ PA1/PA2 are perfectly good pins, they just have no USB hardware behind them. So 
 
 ### A6. IMU SPI is broken — PB12 and PB13 are shorted together
 
-I traced this twice because I didn't believe it the first time. On sheet 3 there's a junction dot joining PB12 and PB13, and the merged net carries both the **IMU_CS** and **IMU_SCLK** labels. So the chip-select line and the SPI clock line to the gyro are physically the same wire.
+I traced this twice because I didn't believe it the first time. On sheet 3 there's a junction dot joining PB12 and PB13, and the merged net carries both the **IMU_CS** and **IMU_SCLK** labels. So the chip-select line and the SPI clock line to the gyro (the ICM-42688-P — TDK's 6-axis gyro + accelerometer, the flight sensor itself) are physically the same wire.
 
 Why that can't work: on an SPI bus, chip-select (CS) has to stay *held low* for the entire transaction — it's how the sensor knows "I'm being talked to." The clock (SCLK), meanwhile, toggles up and down with every bit. One signal can't simultaneously stay still and toggle. The moment the clock starts, the sensor sees its chip-select bouncing and abandons the transaction. No gyro data, ever — which for a flight controller means no flight.
 
@@ -131,13 +139,13 @@ A buck regulator doesn't know what voltage you want — it just adjusts its outp
 
 We used R4 = 100 kΩ and R5 = 30.1 kΩ (visible in the A4 snippet). Run the numbers: 0.798 × (1 + 100/30.1) = **3.45 V typical**, and up to 3.52 V once you stack resistor tolerance and temperature drift.
 
-Is 3.45 V dangerous? Not immediately — but every digital part on this rail (F411, both G071s, the IMU, the flash) has an operating maximum of **3.6 V**. Worst case, we're 81 mV from the ceiling on every chip, before accounting for any transient overshoot when the load steps. All the safety margin the designers intended is gone, spent on two wrong resistors.
+Is 3.45 V dangerous? Not immediately — but every digital part on this rail (F411, both G071s, the ICM-42688-P gyro, and the W25Q128 — the Winbond 16 MB SPI flash that stores blackbox logs) has an operating maximum of **3.6 V**. Worst case, we're 81 mV from the ceiling on every chip, before accounting for any transient overshoot when the load steps. All the safety margin the designers intended is gone, spent on two wrong resistors.
 
 **Fix:** swap the divider to the datasheet's 102k/32.4k.
 
 ### B2. Crystal load caps are a bit off
 
-A quartz crystal is cut to oscillate at exactly its rated frequency only when it sees a specific capacitance across it — its "load capacitance," CL, printed in the datasheet. Our ABLS-8.000MHZ crystal wants **18 pF**. The two capacitors on its pins appear *in series* from the crystal's point of view, so two 18 pF caps give 9 pF, plus roughly 5 pF of stray PCB capacitance ≈ **14 pF — 4 pF short**.
+A quartz crystal is cut to oscillate at exactly its rated frequency only when it sees a specific capacitance across it — its "load capacitance," CL, printed in the datasheet. Our ABLS-8.000MHZ (an Abracon 8 MHz quartz crystal — the F411's clock reference) wants **18 pF**. The two capacitors on its pins appear *in series* from the crystal's point of view, so two 18 pF caps give 9 pF, plus roughly 5 pF of stray PCB capacitance ≈ **14 pF — 4 pF short**.
 
 An underloaded crystal still oscillates, just slightly fast (a few tens of ppm) and with less stability margin. Not fatal for a flight controller, but it's a two-component fix: use ~30 pF caps (30/2 + 5 ≈ 20 pF, close enough), or switch to a 9–10 pF CL crystal.
 
