@@ -36,7 +36,7 @@ The SX1280's absolute maximum on its supply pins (VBAT / VBAT_IO) is **3.9 V**, 
 
 Since the rest of the design can't actually run below 2S (see A3), the battery net sits at 7.4–8.4 V — roughly **twice what the radio can survive**. Even a single fresh cell at 4.2 V is already over the 3.9 V limit. The radio dies the moment a battery is plugged in.
 
-![SX1280 supply pins tied to the VBAT port on sheet 7](images/A1_sx1280_vbat.png)
+![Sheet 7 — red boxes: the SX1280 supply pins (VR_PA/VBAT_IO/VBAT/VDD_IN) and the VBAT port feeding them](images/A1_sx1280_vbat.png)
 
 **Fix:** move all SX1280 supply pins to the 3.3 V rail. (Its operating max is 3.7 V so 3.3 V is comfortable — though see B1, our "3.3 V" rail is actually 3.45 V right now.)
 
@@ -46,7 +46,7 @@ Quick background: a MOSFET needs several volts on its gate to switch on, and the
 
 On sheets 10 and 11, the FD6288Q VCC pin on both U6 and U7, plus the three BAT54 bootstrap diodes, sit on a net labelled `5V`. Here's the catch: in a multi-sheet schematic, every net label carries a cross-reference list showing which other sheets it appears on. The `5V` net's list only points to `gatedriver1[3B], gatedriver2[2A], gatedriver2[3B]` — i.e. **only back to the gate driver sheets themselves**. No regulator, no connector, nothing anywhere on the board actually produces this 5 V. The only regulator we have is the MPM3610 making 3.3 V (sheet 2), and USB's 5 V is a separate isolated net (`USB_5V`, sheet 6) that goes nowhere near the drivers.
 
-![The 5V net on the gate driver sheet — its cross-references only point back to the gate driver sheets](images/A2_5v_net.png)
+![Sheet 10 — red boxes: the two `5V` net labels; note their cross-reference lists only name the gate driver sheets, so nothing generates this rail](images/A2_5v_net.png)
 
 Three consequences, in increasing subtlety:
 
@@ -73,7 +73,7 @@ EN is the regulator's enable pin — pull it high and the regulator runs. The ob
 
 The catch is that EN is a *low-voltage* pin: its absolute maximum is **6 V**, even though the power input beside it takes 21 V. Inside the chip, EN is protected by a small ~6.5 V zener diode. The datasheet (Fig. 4) says that if your input is above 6 V you must connect EN through a series resistor sized to keep the current through that zener under 100 µA — the resistor takes the excess voltage so the pin doesn't have to. Tied directly, a 2S battery puts 8.4 V on a 6 V-max pin with nothing limiting the current, and the little zener slowly cooks.
 
-![EN (pin 17) tied hard to IN (pin 16) on the MPM3610, sheet 2 — also visible: R5 = 30.1k and R4 = 100k feedback divider (see B1)](images/A4_mpm3610_en_fb.png)
+![Sheet 2 — red box: EN (pin 17) tied hard to IN (pin 16) on the MPM3610. Also visible: R5 = 30.1k (top) and R4 = 100k (bottom right), the feedback divider from B1](images/A4_mpm3610_en_fb.png)
 
 **Fix:** one resistor between VBAT and EN — ≥ 20 kΩ for 2S, ≥ 103 kΩ if we want 4S. (Datasheet formula: R ≥ (VIN − 6.5 V)/100 µA.)
 
@@ -83,7 +83,7 @@ On microcontrollers, most functions can be moved between pins — but not all. O
 
 PA1/PA2 are perfectly good pins, they just have no USB hardware behind them. So the computer will never even detect the board — no Configurator connection, no firmware flashing over USB (DFU).
 
-![USB_DN/USB_DP routed to PA1/PA2 instead of PA11/PA12, sheet 3](images/A5_usb_pins.png)
+![Sheet 3 — red boxes: the USB_DN/USB_DP labels (top) and the PA1/PA2 pins they wrongly land on (bottom); PA11/PA12 are unconnected](images/A5_usb_pins.png)
 
 ### A6. IMU SPI is broken — PB12 and PB13 are shorted together
 
@@ -91,7 +91,7 @@ I traced this twice because I didn't believe it the first time. On sheet 3 there
 
 Why that can't work: on an SPI bus, chip-select (CS) has to stay *held low* for the entire transaction — it's how the sensor knows "I'm being talked to." The clock (SCLK), meanwhile, toggles up and down with every bit. One signal can't simultaneously stay still and toggle. The moment the clock starts, the sensor sees its chip-select bouncing and abandons the transaction. No gyro data, ever — which for a flight controller means no flight.
 
-![PB12 and PB13 joined by a junction — IMU_CS and IMU_SCLK are one net, sheet 3](images/A6_pb12_pb13_short.png)
+![Sheet 3 — red box: PB12 and PB13 with the junction dots that merge them into one net carrying both IMU_CS and IMU_SCLK](images/A6_pb12_pb13_short.png)
 
 **Fix:** separate them — IMU_CS on PB12, IMU_SCLK on PB13, which is exactly what SPI2's default pinout wants anyway.
 
@@ -101,7 +101,7 @@ This is the big one. Trace every net between the F411 (flight controller) and th
 
 Think of it this way: the flight controller computes "motor 1 should run at 43% throttle" a few thousand times per second — and has no wire on which to say it. The ESCs sit there fully wired to their motors, waiting for a command that physically cannot arrive.
 
-![ESC2's G071 — apart from the PWM outputs to the gate driver, every signal pin is no-connect. There is no input from the FC at all (sheets 8/9)](images/A7_esc_mcu.png)
+![Sheets 8/9 — red boxes: every candidate input pin on the G071 is crossed out (no-connect) — right side PA8–PA13/PC6/PB1, bottom PA2–PA7/PB0. The only connected signals are the PWM outputs to the gate driver](images/A7_esc_mcu.png)
 
 **Fix:** route a throttle-signal net from the F411 to each G071 (one timer-capable pin per ESC for DShot/PWM, or a UART pair if we want serial control), plus ideally a telemetry line back.
 
@@ -111,7 +111,7 @@ SWD is the two-wire debug/programming interface (SWDIO = data, SWCLK = clock) th
 
 On sheets 8 and 9 (both ESCs), the SWCLK wire pads route to **PC14-OSC32_IN** — a crystal-oscillator pin that has nothing to do with debugging — while PA14 is left unconnected. Result: a programmer physically cannot clock the debug port, so neither ESC MCU can ever be flashed. Brand-new blank chips with no way to put firmware on them.
 
-![SWCLK2 pad routes to PC14-OSC32_IN; PA14-BOOT0 is unconnected](images/A8_swclk_pc14.png)
+![Red boxes: the SWCLK2 programming pad (right) and PC14-OSC32_IN (left) where its wire actually lands — the real SWCLK pin, PA14, is unconnected](images/A8_swclk_pc14.png)
 
 One thing that is *not* a bug here: leaving PA14-BOOT0 floating is fine on the G071. Its factory option bytes default to nBOOT_SEL = 1, meaning the BOOT0 pin is ignored, and an empty chip automatically falls into the built-in bootloader (RM0444 §3.5). So no pull resistor needed — just route SWCLK to the right pin.
 
@@ -121,7 +121,7 @@ The STM32F411's core actually runs at ~1.3 V, not 3.3 V — an on-chip regulator
 
 The datasheet (Table 16) is explicit: packages with a **single VCAP pin need 4.7 µF** (the 2×2.2 µF option is only for packages with two VCAP pins). Our UFQFPN48 has one VCAP pin, and sheet 3 has C32 = 2.2 µF on it — half the required value.
 
-![C32 = 2.2 µF on VCAP1 — needs to be 4.7 µF for a single-VCAP package (sheet 3)](images/A9_vcap.png)
+![Sheet 3 — red box: C32 = 2.2 µF on VCAP1; a single-VCAP package needs 4.7 µF](images/A9_vcap.png)
 
 **Fix:** change C32 to 4.7 µF. One-line change, and it removes a whole class of "unexplainable" runtime instability at 100 MHz.
 
@@ -145,7 +145,7 @@ A quartz crystal is cut to oscillate at exactly its rated frequency only when it
 
 An underloaded crystal still oscillates, just slightly fast (a few tens of ppm) and with less stability margin. Not fatal for a flight controller, but it's a two-component fix: use ~30 pF caps (30/2 + 5 ≈ 20 pF, close enough), or switch to a 9–10 pF CL crystal.
 
-![C6/C7 = 18 pF on the 18 pF-CL crystal — effective CL comes out to ~14 pF (sheet 3)](images/B2_crystal.png)
+![Sheet 3 — red boxes: the 8 MHz crystal (18 pF CL) and its 18 pF load caps; effective CL works out to only ~14 pF](images/B2_crystal.png)
 
 ### B3. The ESC MCUs are completely sensor-blind
 
@@ -163,7 +163,7 @@ The gyro doesn't produce data continuously — it produces a sample every N micr
 
 On sheet 4, INT1/INT (pin 4) is no-connect (INT2/FSYNC is tied to ground, which is fine). Without INT1, the firmware falls back to polling — asking "got data yet?" on a timer — which means every sample is a variable fraction of a sample-period stale. The flight controller still flies, but the control loop is noticeably jitterier, and tuning suffers.
 
-![ICM-42688-P with INT1/INT left unconnected, sheet 4](images/B4_imu_int.png)
+![Sheet 4 — red box: INT1/INT (pin 4) marked with a no-connect X — the data-ready interrupt never reaches the FC](images/B4_imu_int.png)
 
 **Fix:** one trace from INT1 to any free EXTI-capable pin on the F411 (PA8 is free).
 
@@ -173,7 +173,7 @@ A shared SPI bus has a specific shape: **one** clock line, **one** MISO, **one**
 
 That topology matches no standard SPI peripheral. The F411's SPI1 block drives one clock pin; it has no concept of "clock A for this device, clock B for that one." Making this work would mean bit-banging or constantly remuxing pins, and guaranteeing the two devices never talk at the same time — none of which any existing driver (or Rotorflight) does. It also permanently locks the flash to dual-IO mode, since two of its quad-IO pins are consumed by the sharing.
 
-![Two clocks (FLASH_CLK on PA4, SX_SCK on PA5) sharing the same MISO/MOSI pair, sheet 3](images/B5_two_spi_clocks.png)
+![Sheet 3 — red boxes: two separate clocks (FLASH_CLK and SX_SCK) landing on adjacent pins PA4/PA5, while MISO/MOSI (PA6/PA7) are shared between both devices](images/B5_two_spi_clocks.png)
 
 **Fix:** make it a textbook shared bus — one SCK, shared MISO/MOSI, one CS per device — or give the flash and radio separate SPI peripherals entirely. (Clock ceilings for reference: SX1280 18 MHz, ICM-42688-P 24 MHz, W25Q128JV 133 MHz.)
 
