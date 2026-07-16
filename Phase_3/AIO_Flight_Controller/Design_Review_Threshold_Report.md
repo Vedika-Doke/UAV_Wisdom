@@ -97,11 +97,10 @@ Why that can't work: on an SPI bus, chip-select (CS) has to stay *held low* for 
 
 **Fix:** separate them — IMU_CS on PB12, IMU_SCLK on PB13, which is exactly what SPI2's default pinout wants anyway.
 
-### A7. There is no signal path between the flight controller and the ESCs
+### A7. Check the signal path between the flight controller and the ESCs
 
-This is the big one. Trace every net between the F411 (flight controller) and the two G071s (ESC MCUs), and the only things they share are **3.3V and GND** — power, nothing else. No throttle signal, no PWM, no DShot, no UART, no telemetry. On the F411 side, every plausible output pin (PA0, PA8–PA12, PA15, PB2–PB4, PB6–PB9) is no-connect. On the G071 side, the only signal pins connected at all are the six PWM outputs going to the gate drivers.
+Every net between the F411 (flight controller) and the two G071s (ESC MCUs), the only things they share are **3.3V and GND** — power. No throttle signal, no PWM, no DShot, no UART, no telemetry. On the F411 side, every plausible output pin (PA0, PA8–PA12, PA15, PB2–PB4, PB6–PB9) is no-connect. On the G071 side, the only signal pins connected at all are the six PWM outputs going to the gate drivers.
 
-Think of it this way: the flight controller computes "motor 1 should run at 43% throttle" a few thousand times per second — and has no wire on which to say it. The ESCs sit there fully wired to their motors, waiting for a command that physically cannot arrive.
 
 ![Sheets 8/9 — red boxes: every candidate input pin on the G071 is crossed out (no-connect) — right side PA8–PA13/PC6/PB1, bottom PA2–PA7/PB0. The only connected signals are the PWM outputs to the gate driver](images/A7_esc_mcu.png)
 
