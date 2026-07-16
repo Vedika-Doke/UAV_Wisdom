@@ -198,20 +198,6 @@ That topology matches no standard SPI peripheral. The F411's SPI1 block drives o
 
 **Fix:** make it a textbook shared bus — one SCK, shared MISO/MOSI, one CS per device — or give the flash and radio separate SPI peripherals entirely. (Clock ceilings for reference: SX1280 18 MHz, ICM-42688-P 24 MHz, W25Q128JV 133 MHz.)
 
-### B6. Don't trust the AON7524's headline current rating
-
-The AON7524's datasheet says "25 A" on page 1. That number is misleading, and here's why.
-
-A MOSFET isn't limited by current itself — it's limited by **heat**. Current flowing through the FET's small internal resistance generates heat; if that heat can't escape fast enough, the chip cooks. The FET package is tiny, so it can't shed the heat alone — it relies on the copper of the circuit board underneath acting as its heatsink. More copper = more cooling = more current allowed.
-
-So when the datasheet says 25 A, the fine print (note A) matters: that figure was measured with the FET mounted on **one square inch of thick (2 oz) copper, per device, in still air**. That's the "heatsink" behind the headline number.
-
-Now look at our board: it's 25×25 mm — *in total*, that's about one square inch — and it carries **six** of these FETs per motor plus everything else. Each FET might get a tenth of the copper the rating assumes. Less copper, less cooling, so the real safe continuous current is far below 25 A. The datasheet isn't lying; it's just measured in conditions our board doesn't provide.
-
-**Why this doesn't hurt us:** our nano-UAV motors only draw a few amps. At 5 A, the FET's resistance (4 mΩ) wastes only P = I²R = 5² × 0.004 = **0.1 W** — a tenth of a watt, barely warm even with minimal copper. So we're fine.
-
-The warning is for the future: if anyone reuses this power stage for a bigger craft and sizes it by the "25 A/28 A" on page 1, they'll burn the FETs. Always de-rate a MOSFET's headline current to match the copper you can actually give it.
-
 ---
 
 ## C. Things that are checked 
